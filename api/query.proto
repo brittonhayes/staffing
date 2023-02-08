@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "api/staffing.proto";
+
+option go_package = "../pkg/grpc/pb";
+
+service Queries {
+    rpc AllProjects (google.protobuf.Empty) returns (AllProjectsReply) {}
+    rpc AllBench (google.protobuf.Empty) returns (AllBenchReply) {} 
+}
+
+message Project {
+    string id = 1;
+    string name = 2;
+    string client = 3;
+    string description = 4;
+    int32 employees_needed = 5;
+    repeated Employee employees = 6;
+}
+
+message AllBenchReply {
+    repeated Employee employees = 1;
+}
+
+message AllProjectsReply {
+    repeated Project projects = 1;
+}
