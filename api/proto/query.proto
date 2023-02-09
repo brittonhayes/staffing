@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
-import "api/staffing.proto";
+import "api/proto/staffing.proto";
 
 option go_package = "../pkg/grpc/pb";
 

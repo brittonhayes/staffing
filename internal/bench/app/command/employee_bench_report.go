@@ -1,4 +1,4 @@
-package bench
+package command
 
 import (
 	"context"

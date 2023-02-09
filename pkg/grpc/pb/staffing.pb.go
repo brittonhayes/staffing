@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.28.1
 // 	protoc        v3.21.12
-// source: api/staffing.proto
+// source: api/proto/staffing.proto
 
 package pb
 
@@ -32,7 +32,7 @@ type Employee struct {
 func (x *Employee) Reset() {
 	*x = Employee{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_staffing_proto_msgTypes[0]
+		mi := &file_api_proto_staffing_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -45,7 +45,7 @@ func (x *Employee) String() string {
 func (*Employee) ProtoMessage() {}
 
 func (x *Employee) ProtoReflect() protoreflect.Message {
-	mi := &file_api_staffing_proto_msgTypes[0]
+	mi := &file_api_proto_staffing_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +58,7 @@ func (x *Employee) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Employee.ProtoReflect.Descriptor instead.
 func (*Employee) Descriptor() ([]byte, []int) {
-	return file_api_staffing_proto_rawDescGZIP(), []int{0}
+	return file_api_proto_staffing_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Employee) GetId() string {
@@ -75,34 +75,35 @@ func (x *Employee) GetName() string {
 	return ""
 }
 
-var File_api_staffing_proto protoreflect.FileDescriptor
+var File_api_proto_staffing_proto protoreflect.FileDescriptor
 
-var file_api_staffing_proto_rawDesc = []byte{
-	0x0a, 0x12, 0x61, 0x70, 0x69, 0x2f, 0x73, 0x74, 0x61, 0x66, 0x66, 0x69, 0x6e, 0x67, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x22, 0x2e, 0x0a, 0x08, 0x45, 0x6d, 0x70, 0x6c, 0x6f, 0x79, 0x65, 0x65,
-	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64,
-	0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04,
-	0x6e, 0x61, 0x6d, 0x65, 0x42, 0x10, 0x5a, 0x0e, 0x2e, 0x2e, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x67,
-	0x72, 0x70, 0x63, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+var file_api_proto_staffing_proto_rawDesc = []byte{
+	0x0a, 0x18, 0x61, 0x70, 0x69, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x73, 0x74, 0x61, 0x66,
+	0x66, 0x69, 0x6e, 0x67, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x2e, 0x0a, 0x08, 0x45, 0x6d,
+	0x70, 0x6c, 0x6f, 0x79, 0x65, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x42, 0x10, 0x5a, 0x0e, 0x2e, 0x2e,
+	0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x67, 0x72, 0x70, 0x63, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
-	file_api_staffing_proto_rawDescOnce sync.Once
-	file_api_staffing_proto_rawDescData = file_api_staffing_proto_rawDesc
+	file_api_proto_staffing_proto_rawDescOnce sync.Once
+	file_api_proto_staffing_proto_rawDescData = file_api_proto_staffing_proto_rawDesc
 )
 
-func file_api_staffing_proto_rawDescGZIP() []byte {
-	file_api_staffing_proto_rawDescOnce.Do(func() {
-		file_api_staffing_proto_rawDescData = protoimpl.X.CompressGZIP(file_api_staffing_proto_rawDescData)
+func file_api_proto_staffing_proto_rawDescGZIP() []byte {
+	file_api_proto_staffing_proto_rawDescOnce.Do(func() {
+		file_api_proto_staffing_proto_rawDescData = protoimpl.X.CompressGZIP(file_api_proto_staffing_proto_rawDescData)
 	})
-	return file_api_staffing_proto_rawDescData
+	return file_api_proto_staffing_proto_rawDescData
 }
 
-var file_api_staffing_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_api_staffing_proto_goTypes = []interface{}{
+var file_api_proto_staffing_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_api_proto_staffing_proto_goTypes = []interface{}{
 	(*Employee)(nil), // 0: Employee
 }
-var file_api_staffing_proto_depIdxs = []int32{
+var file_api_proto_staffing_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -110,13 +111,13 @@ var file_api_staffing_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_api_staffing_proto_init() }
-func file_api_staffing_proto_init() {
-	if File_api_staffing_proto != nil {
+func init() { file_api_proto_staffing_proto_init() }
+func file_api_proto_staffing_proto_init() {
+	if File_api_proto_staffing_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_api_staffing_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_api_proto_staffing_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Employee); i {
 			case 0:
 				return &v.state
@@ -133,18 +134,18 @@ func file_api_staffing_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_api_staffing_proto_rawDesc,
+			RawDescriptor: file_api_proto_staffing_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_api_staffing_proto_goTypes,
-		DependencyIndexes: file_api_staffing_proto_depIdxs,
-		MessageInfos:      file_api_staffing_proto_msgTypes,
+		GoTypes:           file_api_proto_staffing_proto_goTypes,
+		DependencyIndexes: file_api_proto_staffing_proto_depIdxs,
+		MessageInfos:      file_api_proto_staffing_proto_msgTypes,
 	}.Build()
-	File_api_staffing_proto = out.File
-	file_api_staffing_proto_rawDesc = nil
-	file_api_staffing_proto_goTypes = nil
-	file_api_staffing_proto_depIdxs = nil
+	File_api_proto_staffing_proto = out.File
+	file_api_proto_staffing_proto_rawDesc = nil
+	file_api_proto_staffing_proto_goTypes = nil
+	file_api_proto_staffing_proto_depIdxs = nil
 }

@@ -1,9 +1,9 @@
-package bench
+package command
 
 import (
 	"context"
-	
-	"github.com/ThreeDotsLabs/watermill"	
+
+	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/components/cqrs"
 	"github.com/brittonhayes/go-cqrs-example/pkg/grpc/pb"
 )
@@ -12,8 +12,8 @@ type MoveEmployeeToBenchHandler struct {
 	eventBus *cqrs.EventBus
 }
 
-func NewMoveEmployeeToBenchHandler(eventBus *cqrs.EventBus) *MoveEmployeeToBenchHandler {
-	return &MoveEmployeeToBenchHandler{
+func NewMoveEmployeeToBenchHandler(eventBus *cqrs.EventBus) MoveEmployeeToBenchHandler {
+	return MoveEmployeeToBenchHandler{
 		eventBus: eventBus,
 	}
 }
@@ -36,9 +36,8 @@ func (m MoveEmployeeToBenchHandler) Handle(ctx context.Context, c interface{}) e
 		return err
 	}
 
-	
 	logger.Info("Employee moved to bench", watermill.LogFields{
-		"handler":     m.HandlerName(),
+		"handler":       m.HandlerName(),
 		"employee_name": cmd.EmployeeName,
 	})
 
