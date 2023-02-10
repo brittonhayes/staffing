@@ -3,7 +3,7 @@ services:
   staffd:
     build:
       context: .
-      dockerfile: build/staffd/Dockerfile
+      dockerfile: Dockerfile
     image: golang:1.19
     restart: unless-stopped
     ports:

@@ -4,43 +4,56 @@ import (
 	"context"
 	"time"
 
-	"github.com/ThreeDotsLabs/watermill/components/cqrs"
+	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"github.com/brianvoe/gofakeit/v6"
-	"github.com/brittonhayes/go-cqrs-example/internal/bench/app"
-	"github.com/brittonhayes/go-cqrs-example/internal/bench/ports"
-	"github.com/brittonhayes/go-cqrs-example/pkg/grpc/pb"
-	"github.com/brittonhayes/go-cqrs-example/pkg/logging"
+	"github.com/brittonhayes/staffing/inmem"
+	"github.com/brittonhayes/staffing/project"
+	"github.com/brittonhayes/staffing/proto/pb"
+	"github.com/brittonhayes/staffing/server"
+	"google.golang.org/protobuf/proto"
 )
 
 func main() {
-	router, err := message.NewRouter(message.RouterConfig{}, logging.New(false, false, "router"))
+
+	projects := inmem.NewProjectRepository()
+	logger := watermill.NewStdLogger(true, false)
+
+	subscriber := gochannel.NewGoChannel(gochannel.Config{}, logger)
+	publisher := gochannel.NewGoChannel(gochannel.Config{}, logger)
+
+	ps := project.NewService(projects)
+	srv := server.New(ps, publisher, subscriber, logger)
+
+	_, err := subscriber.Subscribe(context.Background(), server.CreateProjectSubscribeTopic)
 	if err != nil {
 		panic(err)
 	}
 
-	service := ports.NewService(app.Application{}, router)
+	go publishMessages(subscriber)
 
-	go publishCommands(service.CommandBus())
-
-	if err := router.Run(context.Background()); err != nil {
+	err = srv.RunPubSub(context.Background())
+	if err != nil {
 		panic(err)
 	}
 }
 
-func publishCommands(commandBus *cqrs.CommandBus) func() {
-	i := 0
+// publish messages simulates a client publishing messages to the server
+func publishMessages(publisher message.Publisher) {
 	for {
-		i++
-
-		moveEmployeeToBenchCmd := &pb.MoveEmployeeToBenchCommand{
-			EmployeeId:   gofakeit.UUID(),
-			EmployeeName: gofakeit.Name(),
-		}
-		if err := commandBus.Send(context.Background(), moveEmployeeToBenchCmd); err != nil {
+		b, err := proto.Marshal(&pb.ProjectCreateCommand{
+			Name: gofakeit.Name(),
+		})
+		if err != nil {
 			panic(err)
 		}
 
-		time.Sleep(10 * time.Second)
+		msg := message.NewMessage(watermill.NewUUID(), b)
+		if err := publisher.Publish(server.CreateProjectSubscribeTopic, msg); err != nil {
+			panic(err)
+		}
+
+		time.Sleep(250 * time.Millisecond)
 	}
 }

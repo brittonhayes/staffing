@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package staffing.project.v1;
+
+option go_package = "./pb;pb";
+
+service Project {
+    rpc CreateProject(ProjectCreateCommand) returns (google.protobuf.Empty) {}
+    rpc AssignEmployee(ProjectAssignEmployeeCommand) returns (google.protobuf.Empty) {}
+    rpc UnassignEmployee(ProjectUnassignEmployeeCommand) returns (google.protobuf.Empty) {}
+}
+
+message ProjectCreateCommand {
+    string name = 2;
+}
+
+message ProjectAssignEmployeeCommand {
+    string project_id = 1;
+    string employee_id = 2;
+}
+
+message ProjectUnassignEmployeeCommand {
+    string project_id = 1;
+    string employee_id = 2;
+}

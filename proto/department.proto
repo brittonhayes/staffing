@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package staffing.department.v1;
+
+option go_package = "./pb;pb";
+
+service Department {
+    rpc CreateDepartment(DepartmentCreateCommand) returns (google.protobuf.Empty);
+    rpc AssignEmployee(DepartmentAssignEmployeeCommand) returns (google.protobuf.Empty);
+    rpc UnassignEmployee(DepartmentUnassignEmployeeCommand) returns (google.protobuf.Empty);
+}
+
+message DepartmentCreateCommand {
+    string departmentId = 1;
+    string name = 2; 
+}
+
+message DepartmentAssignEmployeeCommand {
+    string departmentId = 1;
+    string employeeId = 2; 
+}
+
+message DepartmentUnassignEmployeeCommand {
+    string departmentId = 1;
+    string employeeId = 2; 
+}

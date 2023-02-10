@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-option go_package = "../pkg/grpc/pb";
-
-message Employee {
-    string id = 1;
-    string name = 2;
-}
