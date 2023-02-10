@@ -44,8 +44,6 @@ func (h *projectPubSubHandler) createProject(msg *message.Message) ([]*message.M
 		return nil, err
 	}
 
-	h.logger.Debug("Received create project command", watermill.LogFields{"uuid": msg.UUID, "name": command.Name})
-
 	err = h.service.CreateProject(context.Background(), &command)
 	if err != nil {
 		return nil, err

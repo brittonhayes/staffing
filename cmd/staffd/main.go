@@ -5,6 +5,9 @@ import (
 	"flag"
 	"time"
 
+	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
+	stdprometheus "github.com/prometheus/client_golang/prometheus"
+
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
@@ -45,13 +48,46 @@ func main() {
 		defer departments.Close()
 	}
 
+	fieldKeys := []string{"method"}
+
 	subscriber := gochannel.NewGoChannel(gochannel.Config{}, logger)
 	publisher := gochannel.NewGoChannel(gochannel.Config{}, logger)
 
-	ps := project.NewService(projects)
-	ds := department.NewService(departments)
-	srv := server.New(ps, ds, publisher, subscriber, logger)
+	projectSvc := project.NewService(projects)
+	projectSvc = project.NewLoggingService(logger.With(watermill.LogFields{"service": "project"}), projectSvc)
+	projectSvc = project.NewInstrumentingService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "pubsub",
+		Subsystem: "project_service",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "pubsub",
+			Subsystem: "project_service",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys),
+		projectSvc,
+	)
 
+	departmentSvc := department.NewService(departments)
+	departmentSvc = department.NewLoggingService(logger.With(watermill.LogFields{"service": "department"}), departmentSvc)
+	departmentSvc = department.NewInstrumentingService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "pubsub",
+		Subsystem: "department_service",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "pubsub",
+			Subsystem: "department_service",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys),
+		departmentSvc,
+	)
+
+	srv := server.New(projectSvc, departmentSvc, publisher, subscriber, logger)
 	_, err := subscriber.Subscribe(ctx, server.CreateProjectSubscribeTopic)
 	if err != nil {
 		panic(err)
