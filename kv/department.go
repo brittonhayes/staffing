@@ -53,9 +53,11 @@ func (r *departmentRepository) CreateDepartment(ctx context.Context, name string
 }
 
 func (r *departmentRepository) AssignEmployee(ctx context.Context, departmentID staffing.DepartmentID, employeeID staffing.EmployeeID) error {
+	//TODO implement assign employee handler
 	return nil
 }
 
 func (r *departmentRepository) UnassignEmployee(ctx context.Context, departmentID staffing.DepartmentID, employeeID staffing.EmployeeID) error {
+	//TODO implement unassign employee handler
 	return nil
 }

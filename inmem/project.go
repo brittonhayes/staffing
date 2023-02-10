@@ -40,12 +40,16 @@ func (r *projectRepository) AssignEmployee(ctx context.Context, projectID staffi
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
+	// TODO implement assign employee handler for inmem repository
+
 	return nil
 }
 
 func (r *projectRepository) UnassignEmployee(ctx context.Context, projectID staffing.ProjectID, employeeID staffing.EmployeeID) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	// TODO implement unassign employee handler for inmem repository
 
 	return nil
 }

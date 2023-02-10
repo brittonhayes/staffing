@@ -6,6 +6,7 @@
 
 This is an example of a staffing service for a fictional consulting company. It is an implementation of [Domain Driven Design](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215) and [Clean Architecture](https://www.amazon.com/Clean-Architecture-Craftsmans-Software-Structure/dp/0134494164).
 
+<!-- TODO CQRS and event-sourcing are in-progress -->
 The service uses [CQRS](https://martinfowler.com/bliki/CQRS.html) and [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html) to implement the business logic. The service is implemented in [Go](https://golang.org/).
 
 The structure of the service is based off [github.com/marcusolsson/goddd by Marcus Olsson](https://github.com/marcusolsson/goddd).

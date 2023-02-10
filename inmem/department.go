@@ -52,5 +52,7 @@ func (r *departmentRepository) UnassignEmployee(ctx context.Context, departmentI
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
+	// TODO implement unassign employee handler for inmem repository
+
 	return nil
 }
