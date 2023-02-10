@@ -19,6 +19,11 @@ func NewProjectRepository() staffing.ProjectRepository {
 	}
 }
 
+func (r *projectRepository) Close() error {
+	defer r.mu.Unlock()
+	return nil
+}
+
 func (r *projectRepository) CreateProject(ctx context.Context, name string) error {
 	r.mu.RLock()
 	defer r.mu.RUnlock()

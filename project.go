@@ -11,6 +11,7 @@ type ProjectRepository interface {
 	CreateProject(ctx context.Context, name string) error
 	AssignEmployee(ctx context.Context, projectID ProjectID, employeeID EmployeeID) error
 	UnassignEmployee(ctx context.Context, projectID ProjectID, employeeID EmployeeID) error
+	Close() error
 }
 
 type ProjectID string
@@ -23,6 +24,6 @@ type Project struct {
 type EmployeeID string
 
 type Employee struct {
-	ID        EmployeeID
-	ProjectID ProjectID
+	ID   EmployeeID
+	Name string
 }

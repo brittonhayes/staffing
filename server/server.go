@@ -8,6 +8,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
+	"github.com/brittonhayes/staffing/department"
 	"github.com/brittonhayes/staffing/project"
 )
 
@@ -19,7 +20,7 @@ type Server struct {
 	router *message.Router
 }
 
-func New(ps project.Service, publisher message.Publisher, subscriber message.Subscriber, logger watermill.LoggerAdapter) *Server {
+func New(ps project.Service, ds department.Service, publisher message.Publisher, subscriber message.Subscriber, logger watermill.LoggerAdapter) *Server {
 	s := &Server{
 		Project: ps,
 		Logger:  logger,
@@ -37,7 +38,7 @@ func New(ps project.Service, publisher message.Publisher, subscriber message.Sub
 		Logger:          s.Logger,
 	}.Middleware)
 
-	ph := &projectHandler{
+	ph := &projectPubSubHandler{
 		service:    ps,
 		router:     router,
 		publisher:  publisher,
@@ -45,6 +46,15 @@ func New(ps project.Service, publisher message.Publisher, subscriber message.Sub
 		logger:     logger,
 	}
 	ph.addHandlers()
+
+	dh := &departmentPubSubHandler{
+		service:    ds,
+		router:     router,
+		publisher:  publisher,
+		subscriber: subscriber,
+		logger:     logger,
+	}
+	dh.addHandlers()
 
 	s.router = router
 

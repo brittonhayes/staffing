@@ -15,11 +15,11 @@ const (
 	CreateProjectHandlerName = "create_project"
 	// CreateProjectSubscribeTopic is the subscriber topic for creating a project
 	CreateProjectSubscribeTopic = "topic.create_project"
-	// CreateProjectPublishTopic is the topic for publishing a create project command
+	// CreateProjectPublishTopic is the topic for publishing a project created event
 	CreateProjectPublishTopic = "topic.project_created"
 )
 
-type projectHandler struct {
+type projectPubSubHandler struct {
 	service project.Service
 
 	router *message.Router
@@ -30,11 +30,11 @@ type projectHandler struct {
 	logger watermill.LoggerAdapter
 }
 
-func (h *projectHandler) addHandlers() {
+func (h *projectPubSubHandler) addHandlers() {
 	h.router.AddHandler(CreateProjectHandlerName, CreateProjectSubscribeTopic, h.subscriber, CreateProjectPublishTopic, h.publisher, h.createProject)
 }
 
-func (h *projectHandler) createProject(msg *message.Message) ([]*message.Message, error) {
+func (h *projectPubSubHandler) createProject(msg *message.Message) ([]*message.Message, error) {
 
 	var command pb.ProjectCreateCommand
 	p := protobuf.ProtobufMarshaler{}
@@ -44,7 +44,7 @@ func (h *projectHandler) createProject(msg *message.Message) ([]*message.Message
 		return nil, err
 	}
 
-	h.logger.Info("Received create project command", watermill.LogFields{"uuid": msg.UUID, "name": command.Name})
+	h.logger.Debug("Received create project command", watermill.LogFields{"uuid": msg.UUID, "name": command.Name})
 
 	err = h.service.CreateProject(context.Background(), &command)
 	if err != nil {

@@ -8,6 +8,7 @@ tasks:
     desc: Generate protobuf code
     cmds:
       - buf generate
-  proto:
+  docker:
+    desc: Build docker image
     cmds:
-      - protoc ./**/*.proto --go_out=paths=source_relative:./
+      - docker build -t ghcr.io/brittonhayes/staffing .
