@@ -2,12 +2,15 @@ package server
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/brittonhayes/staffing/department"
 	"github.com/brittonhayes/staffing/internal/protobuf"
 	"github.com/brittonhayes/staffing/proto/pb"
+	"github.com/go-chi/chi"
 )
 
 const (
@@ -19,22 +22,45 @@ const (
 	CreateDepartmentPublishTopic = "topic.department_created"
 )
 
-type departmentPubSubHandler struct {
+type departmentHandler struct {
 	service department.Service
-
-	router *message.Router
-
-	subscriber message.Subscriber
-	publisher  message.Publisher
 
 	logger watermill.LoggerAdapter
 }
 
-func (h *departmentPubSubHandler) addHandlers() {
-	h.router.AddHandler(CreateDepartmentHandlerName, CreateDepartmentSubscribeTopic, h.subscriber, CreateDepartmentPublishTopic, h.publisher, h.createDepartment)
+func (h *departmentHandler) router() chi.Router {
+	r := chi.NewRouter()
+
+	r.Route("/department", func(r chi.Router) {
+		r.Post("/", h.createDepartmentHandler)
+	})
+
+	return r
 }
 
-func (h *departmentPubSubHandler) createDepartment(msg *message.Message) ([]*message.Message, error) {
+func (h *departmentHandler) addPubsubHandlers(router *message.Router, publisher message.Publisher, subscriber message.Subscriber) {
+	router.AddHandler(CreateDepartmentHandlerName, CreateDepartmentSubscribeTopic, subscriber, CreateDepartmentPublishTopic, publisher, h.createDepartment)
+}
+
+func (h *departmentHandler) createDepartmentHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	var request pb.DepartmentCreateCommand
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		encodeError(ctx, err, w)
+		return
+	}
+
+	err = h.service.CreateDepartment(ctx, &request)
+	if err != nil {
+		encodeError(ctx, err, w)
+		return
+	}
+}
+
+func (h *departmentHandler) createDepartment(msg *message.Message) ([]*message.Message, error) {
 
 	var command pb.DepartmentCreateCommand
 	p := protobuf.ProtobufMarshaler{}

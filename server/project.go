@@ -2,12 +2,15 @@ package server
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/brittonhayes/staffing/internal/protobuf"
 	"github.com/brittonhayes/staffing/project"
 	"github.com/brittonhayes/staffing/proto/pb"
+	"github.com/go-chi/chi"
 )
 
 const (
@@ -19,22 +22,47 @@ const (
 	CreateProjectPublishTopic = "topic.project_created"
 )
 
-type projectPubSubHandler struct {
+type projectHandler struct {
 	service project.Service
-
-	router *message.Router
-
-	subscriber message.Subscriber
-	publisher  message.Publisher
 
 	logger watermill.LoggerAdapter
 }
 
-func (h *projectPubSubHandler) addHandlers() {
-	h.router.AddHandler(CreateProjectHandlerName, CreateProjectSubscribeTopic, h.subscriber, CreateProjectPublishTopic, h.publisher, h.createProject)
+func (h *projectHandler) router() chi.Router {
+	r := chi.NewRouter()
+
+	r.Route("/project", func(r chi.Router) {
+		r.Post("/", h.createProjectHandler)
+	})
+
+	return r
 }
 
-func (h *projectPubSubHandler) createProject(msg *message.Message) ([]*message.Message, error) {
+func (h *projectHandler) addPubsubHandlers(router *message.Router, publisher message.Publisher, subscriber message.Subscriber) {
+	router.AddHandler(CreateProjectHandlerName, CreateProjectSubscribeTopic, subscriber, CreateProjectPublishTopic, publisher, h.createProject)
+}
+
+func (h *projectHandler) createProjectHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	var request pb.ProjectCreateCommand
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		encodeError(ctx, err, w)
+		return
+	}
+
+	err = h.service.CreateProject(ctx, &request)
+	if err != nil {
+		encodeError(ctx, err, w)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *projectHandler) createProject(msg *message.Message) ([]*message.Message, error) {
 
 	var command pb.ProjectCreateCommand
 	p := protobuf.ProtobufMarshaler{}

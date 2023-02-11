@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
+	"sync"
 	"time"
 
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
@@ -24,13 +26,15 @@ import (
 
 func main() {
 	var (
-		inmemory = flag.Bool("inmem", false, "use in-memory repositories")
-		debug    = flag.Bool("debug", false, "enable debug logging")
+		inmemory    = flag.Bool("inmem", false, "use in-memory repositories (default false)")
+		debug       = flag.Bool("debug", false, "enable debug logging (default false)")
+		trace       = flag.Bool("trace", false, "enable tracing (default false)")
+		httpAddress = flag.String("address", ":8080", "HTTP address port (default :8080)")
 
 		ctx = context.Background()
 	)
 	flag.Parse()
-	logger := watermill.NewStdLogger(*debug, false)
+	logger := watermill.NewStdLogger(*debug, *trace)
 
 	var (
 		projects    staffing.ProjectRepository
@@ -43,26 +47,24 @@ func main() {
 		departments = inmem.NewDepartmentRepository()
 	} else {
 		projects = kv.NewProjectRepository("projects.db")
-		departments = kv.NewDepartmentRepository("departments.db")
 		defer projects.Close()
+
+		departments = kv.NewDepartmentRepository("departments.db")
 		defer departments.Close()
 	}
 
 	fieldKeys := []string{"method"}
 
-	subscriber := gochannel.NewGoChannel(gochannel.Config{}, logger)
-	publisher := gochannel.NewGoChannel(gochannel.Config{}, logger)
-
 	projectSvc := project.NewService(projects)
 	projectSvc = project.NewLoggingService(logger.With(watermill.LogFields{"service": "project"}), projectSvc)
 	projectSvc = project.NewInstrumentingService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
-		Namespace: "pubsub",
+		Namespace: "api",
 		Subsystem: "project_service",
 		Name:      "request_count",
 		Help:      "Number of requests received.",
 	}, fieldKeys),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
-			Namespace: "pubsub",
+			Namespace: "api",
 			Subsystem: "project_service",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
@@ -73,13 +75,13 @@ func main() {
 	departmentSvc := department.NewService(departments)
 	departmentSvc = department.NewLoggingService(logger.With(watermill.LogFields{"service": "department"}), departmentSvc)
 	departmentSvc = department.NewInstrumentingService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
-		Namespace: "pubsub",
+		Namespace: "api",
 		Subsystem: "department_service",
 		Name:      "request_count",
 		Help:      "Number of requests received.",
 	}, fieldKeys),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
-			Namespace: "pubsub",
+			Namespace: "api",
 			Subsystem: "department_service",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
@@ -87,22 +89,32 @@ func main() {
 		departmentSvc,
 	)
 
-	srv := server.New(projectSvc, departmentSvc, publisher, subscriber, logger)
-	_, err := subscriber.Subscribe(ctx, server.CreateProjectSubscribeTopic)
-	if err != nil {
-		panic(err)
-	}
+	subscriber := gochannel.NewGoChannel(gochannel.Config{}, logger)
+	publisher := gochannel.NewGoChannel(gochannel.Config{}, logger)
 
-	go publishMessages(subscriber)
+	httpServer := server.NewHTTPServer(projectSvc, departmentSvc, *httpAddress, logger)
+	pubsubServer := server.NewPubSubServer(projectSvc, departmentSvc, subscriber, publisher, logger)
 
-	err = srv.RunPubSub(ctx)
-	if err != nil {
-		panic(err)
-	}
+	// Run servers in multiple goroutines
+	wg := new(sync.WaitGroup)
+	wg.Add(2)
+
+	go func() {
+		log.Fatal(pubsubServer.Run(ctx))
+		wg.Done()
+	}()
+	go func() {
+		log.Fatal(httpServer.Run(ctx))
+		wg.Done()
+	}()
+
+	// go publishMessages(ctx, subscriber)
+	wg.Wait()
 }
 
 // publish messages simulates a client publishing messages to the server
-func publishMessages(publisher message.Publisher) {
+func publishMessages(ctx context.Context, publisher message.Publisher) {
+	time.Sleep(10 * time.Second)
 	for {
 		projectCmd, err := proto.Marshal(&pb.ProjectCreateCommand{
 			Name: gofakeit.Name(),
@@ -126,6 +138,6 @@ func publishMessages(publisher message.Publisher) {
 			panic(err)
 		}
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(5 * time.Second)
 	}
 }

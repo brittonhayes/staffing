@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/ThreeDotsLabs/watermill v1.2.0
 	github.com/brianvoe/gofakeit/v6 v6.20.1
+	github.com/go-chi/chi v1.5.4
 	github.com/go-kit/kit v0.12.0
 	github.com/google/uuid v1.3.0
 	github.com/pkg/errors v0.9.1

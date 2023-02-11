@@ -2,13 +2,15 @@
 
 version: '3'
 
+vars:
+  DOCKER_IMAGE: ghcr.io/brittonhayes/staffing
 
 tasks:
   gen:
-    desc: Generate protobuf code
+    desc: Generate Go from protobuf
     cmds:
       - buf generate
   docker:
     desc: Build docker image
     cmds:
-      - docker build -t ghcr.io/brittonhayes/staffing .
+      - docker build -t {{.DOCKER_IMAGE}} .

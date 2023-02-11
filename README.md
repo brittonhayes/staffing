@@ -42,6 +42,15 @@ docker build -t ghcr.io/brittonhayes/staffing:latest .
 docker run ghcr.io/brittonhayes/staffing:latest
 ```
 
+## Docker Compose
+
+You can run with docker-compose see how the service integrates with external metrics or storage services like prometheus or postgres.
+
+```bash
+# Run the service with docker-compose
+docker-compose up
+```
+
 ## Development
 
 ```bash
