@@ -38,12 +38,12 @@ func NewHTTPServer(ps project.Service, ds department.Service, address string, lo
 		address:    address,
 	}
 
-	ph := &projectHandler{
+	ph := &projectHttpHandler{
 		service: ps,
 		logger:  logger,
 	}
 
-	dh := &departmentHandler{
+	dh := &departmentHttpHandler{
 		service: ds,
 		logger:  logger,
 	}
@@ -52,14 +52,10 @@ func NewHTTPServer(ps project.Service, ds department.Service, address string, lo
 
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Recoverer)
-	router.Use(middleware.Logger)
 
-	router.Route("/projects", func(r chi.Router) {
-		r.Mount("/v1", ph.router())
-	})
-
-	router.Route("/departments", func(r chi.Router) {
-		r.Mount("/v1", dh.router())
+	router.Route("/api/v1", func(r chi.Router) {
+		r.Mount("/projects", ph.router())
+		r.Mount("/departments", dh.router())
 	})
 
 	router.Method(http.MethodGet, "/metrics", promhttp.Handler())

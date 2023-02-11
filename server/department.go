@@ -22,27 +22,23 @@ const (
 	CreateDepartmentPublishTopic = "topic.department_created"
 )
 
-type departmentHandler struct {
+type departmentHttpHandler struct {
 	service department.Service
 
 	logger watermill.LoggerAdapter
 }
 
-func (h *departmentHandler) router() chi.Router {
+func (h *departmentHttpHandler) router() chi.Router {
 	r := chi.NewRouter()
 
-	r.Route("/department", func(r chi.Router) {
+	r.Route("/", func(r chi.Router) {
 		r.Post("/", h.createDepartmentHandler)
 	})
 
 	return r
 }
 
-func (h *departmentHandler) addPubsubHandlers(router *message.Router, publisher message.Publisher, subscriber message.Subscriber) {
-	router.AddHandler(CreateDepartmentHandlerName, CreateDepartmentSubscribeTopic, subscriber, CreateDepartmentPublishTopic, publisher, h.createDepartment)
-}
-
-func (h *departmentHandler) createDepartmentHandler(w http.ResponseWriter, r *http.Request) {
+func (h *departmentHttpHandler) createDepartmentHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	var request pb.DepartmentCreateCommand
@@ -60,7 +56,17 @@ func (h *departmentHandler) createDepartmentHandler(w http.ResponseWriter, r *ht
 	}
 }
 
-func (h *departmentHandler) createDepartment(msg *message.Message) ([]*message.Message, error) {
+type departmentPubsubHandler struct {
+	service department.Service
+
+	logger watermill.LoggerAdapter
+}
+
+func (h *departmentPubsubHandler) addHandlers(router *message.Router, publisher message.Publisher, subscriber message.Subscriber) {
+	router.AddHandler(CreateDepartmentHandlerName, CreateDepartmentSubscribeTopic, subscriber, CreateDepartmentPublishTopic, publisher, h.createDepartment)
+}
+
+func (h *departmentPubsubHandler) createDepartment(msg *message.Message) ([]*message.Message, error) {
 
 	var command pb.DepartmentCreateCommand
 	p := protobuf.ProtobufMarshaler{}

@@ -22,27 +22,23 @@ const (
 	CreateProjectPublishTopic = "topic.project_created"
 )
 
-type projectHandler struct {
+type projectHttpHandler struct {
 	service project.Service
 
 	logger watermill.LoggerAdapter
 }
 
-func (h *projectHandler) router() chi.Router {
+func (h *projectHttpHandler) router() chi.Router {
 	r := chi.NewRouter()
 
-	r.Route("/project", func(r chi.Router) {
+	r.Route("/", func(r chi.Router) {
 		r.Post("/", h.createProjectHandler)
 	})
 
 	return r
 }
 
-func (h *projectHandler) addPubsubHandlers(router *message.Router, publisher message.Publisher, subscriber message.Subscriber) {
-	router.AddHandler(CreateProjectHandlerName, CreateProjectSubscribeTopic, subscriber, CreateProjectPublishTopic, publisher, h.createProject)
-}
-
-func (h *projectHandler) createProjectHandler(w http.ResponseWriter, r *http.Request) {
+func (h *projectHttpHandler) createProjectHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	var request pb.ProjectCreateCommand
@@ -62,7 +58,17 @@ func (h *projectHandler) createProjectHandler(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (h *projectHandler) createProject(msg *message.Message) ([]*message.Message, error) {
+type projectPubsubHandler struct {
+	service project.Service
+
+	logger watermill.LoggerAdapter
+}
+
+func (h *projectPubsubHandler) addHandlers(router *message.Router, publisher message.Publisher, subscriber message.Subscriber) {
+	router.AddHandler(CreateProjectHandlerName, CreateProjectSubscribeTopic, subscriber, CreateProjectPublishTopic, publisher, h.createProject)
+}
+
+func (h *projectPubsubHandler) createProject(msg *message.Message) ([]*message.Message, error) {
 
 	var command pb.ProjectCreateCommand
 	p := protobuf.ProtobufMarshaler{}

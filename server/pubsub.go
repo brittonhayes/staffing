@@ -40,17 +40,17 @@ func NewPubSubServer(ps project.Service, ds department.Service, publisher messag
 		Logger:          s.Logger,
 	}.Middleware)
 
-	ph := &projectHandler{
+	ph := &projectPubsubHandler{
 		service: ps,
 		logger:  logger,
 	}
-	ph.addPubsubHandlers(router, publisher, subscriber)
+	ph.addHandlers(router, publisher, subscriber)
 
-	dh := &departmentHandler{
+	dh := &departmentPubsubHandler{
 		service: ds,
 		logger:  logger,
 	}
-	dh.addPubsubHandlers(router, publisher, subscriber)
+	dh.addHandlers(router, publisher, subscriber)
 
 	s.router = router
 
