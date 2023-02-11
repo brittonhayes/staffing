@@ -9,11 +9,11 @@ import (
 
 type loggingService struct {
 	logger watermill.LoggerAdapter
-	next   Service
+	next   CommandService
 }
 
 // NewLoggingService returns a new instance of a logging Service.
-func NewLoggingService(logger watermill.LoggerAdapter, s Service) Service {
+func NewLoggingService(logger watermill.LoggerAdapter, s CommandService) CommandService {
 	return &loggingService{logger, s}
 }
 

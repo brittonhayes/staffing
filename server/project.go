@@ -23,7 +23,7 @@ const (
 )
 
 type projectHttpHandler struct {
-	service project.Service
+	service project.CommandService
 
 	logger watermill.LoggerAdapter
 }
@@ -59,7 +59,7 @@ func (h *projectHttpHandler) createProjectHandler(w http.ResponseWriter, r *http
 }
 
 type projectPubsubHandler struct {
-	service project.Service
+	service project.CommandService
 
 	logger watermill.LoggerAdapter
 }

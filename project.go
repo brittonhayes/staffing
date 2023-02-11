@@ -17,14 +17,14 @@ type ProjectRepository interface {
 type ProjectID string
 
 type Project struct {
-	ID                ProjectID
-	Name              string
-	AssignedEmployees []EmployeeID
+	ID   ProjectID
+	Name string
 }
 
 type EmployeeID string
 
 type Employee struct {
-	ID   EmployeeID
-	Name string
+	ID      EmployeeID
+	Name    string
+	Project ProjectID
 }

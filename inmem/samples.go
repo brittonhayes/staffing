@@ -14,8 +14,9 @@ var (
 	}
 
 	trish = &staffing.Employee{
-		ID:   "52928ed0-8122-4a72-a5eb-15d87dc759f8",
-		Name: "Trish",
+		ID:      "52928ed0-8122-4a72-a5eb-15d87dc759f8",
+		Name:    "Trish",
+		Project: "bbbeffe6-d0ee-46d2-961e-f20c6f053b89",
 	}
 )
 
@@ -23,17 +24,10 @@ var (
 	marketing = &staffing.Project{
 		ID:   "bbbeffe6-d0ee-46d2-961e-f20c6f053b89",
 		Name: "Marketing Campaign",
-		AssignedEmployees: []staffing.EmployeeID{
-			sara.ID,
-		},
 	}
 
 	cloudMigration = &staffing.Project{
 		ID:   "7b67e136-5c96-43fc-b1b7-6f2d15c6f5b7",
 		Name: "Cloud Migration",
-		AssignedEmployees: []staffing.EmployeeID{
-			trish.ID,
-			john.ID,
-		},
 	}
 )

@@ -8,22 +8,22 @@ import (
 	"github.com/brittonhayes/staffing/proto/pb"
 )
 
-var _ Service = (*service)(nil)
+var _ CommandService = (*commandService)(nil)
 
 var ErrInvalidArgument = errors.New("invalid argument")
 
-// Service is the interface that provides project methods.
-type Service interface {
+// CommandService is the interface that provides write-only project methods.
+type CommandService interface {
 	CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) error
 	AssignEmployee(ctx context.Context, command *pb.ProjectAssignEmployeeCommand) error
 	UnassignEmployee(ctx context.Context, command *pb.ProjectUnassignEmployeeCommand) error
 }
 
-type service struct {
+type commandService struct {
 	projects staffing.ProjectRepository
 }
 
-func (s *service) CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) error {
+func (s *commandService) CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) error {
 	if command.Name == "" {
 		return ErrInvalidArgument
 	}
@@ -36,7 +36,7 @@ func (s *service) CreateProject(ctx context.Context, command *pb.ProjectCreateCo
 	return nil
 }
 
-func (s *service) AssignEmployee(ctx context.Context, command *pb.ProjectAssignEmployeeCommand) error {
+func (s *commandService) AssignEmployee(ctx context.Context, command *pb.ProjectAssignEmployeeCommand) error {
 	if command.ProjectId == "" || command.EmployeeId == "" {
 		return ErrInvalidArgument
 	}
@@ -49,7 +49,7 @@ func (s *service) AssignEmployee(ctx context.Context, command *pb.ProjectAssignE
 	return nil
 }
 
-func (s *service) UnassignEmployee(ctx context.Context, command *pb.ProjectUnassignEmployeeCommand) error {
+func (s *commandService) UnassignEmployee(ctx context.Context, command *pb.ProjectUnassignEmployeeCommand) error {
 	if command.ProjectId == "" || command.EmployeeId == "" {
 		return ErrInvalidArgument
 	}
@@ -62,9 +62,9 @@ func (s *service) UnassignEmployee(ctx context.Context, command *pb.ProjectUnass
 	return nil
 }
 
-// NewService creates a project service with the necessary dependencies.
-func NewService(projects staffing.ProjectRepository) Service {
-	return &service{
+// NewCommandService creates a project service with the necessary dependencies.
+func NewCommandService(projects staffing.ProjectRepository) CommandService {
+	return &commandService{
 		projects: projects,
 	}
 }

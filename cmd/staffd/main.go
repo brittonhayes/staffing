@@ -55,7 +55,7 @@ func main() {
 
 	fieldKeys := []string{"method"}
 
-	projectSvc := project.NewService(projects)
+	projectSvc := project.NewCommandService(projects)
 	projectSvc = project.NewLoggingService(logger.With(watermill.LogFields{"service": "project"}), projectSvc)
 	projectSvc = project.NewInstrumentingService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",

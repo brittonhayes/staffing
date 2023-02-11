@@ -2,26 +2,34 @@ package inmem
 
 import (
 	"context"
+	"encoding/json"
+	"log"
 	"sync"
+	"time"
 
 	"github.com/brittonhayes/staffing"
 	"github.com/google/uuid"
 )
 
 type projectRepository struct {
-	mu       sync.RWMutex
-	projects map[staffing.ProjectID]*staffing.Project
+	mu     sync.RWMutex
+	events map[string]*staffing.Event
 }
 
 func NewProjectRepository() staffing.ProjectRepository {
-	repository := &projectRepository{
-		projects: make(map[staffing.ProjectID]*staffing.Project),
+	r := &projectRepository{
+		events: make(map[string]*staffing.Event),
 	}
 
-	repository.projects[cloudMigration.ID] = cloudMigration
-	repository.projects[marketing.ID] = marketing
+	marketingEvent, _ := json.Marshal(marketing)
+	r.events[uuid.NewString()] = &staffing.Event{
+		ID:        uuid.NewString(),
+		Timestamp: time.Now(),
+		Type:      "project_created",
+		Body:      marketingEvent,
+	}
 
-	return repository
+	return r
 }
 
 func (r *projectRepository) Close() error {
@@ -33,9 +41,30 @@ func (r *projectRepository) CreateProject(ctx context.Context, name string) erro
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	r.projects[staffing.ProjectID(name)] = &staffing.Project{
+	payload := &staffing.Project{
 		ID:   staffing.ProjectID(uuid.NewString()),
 		Name: name,
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	eventID := uuid.NewString()
+	r.events[eventID] = &staffing.Event{
+		ID:        eventID,
+		Timestamp: time.Now(),
+		Type:      "project_created",
+		Body:      body,
+	}
+
+	for _, e := range r.events {
+		if e.ID == eventID {
+			var project staffing.Project
+			json.Unmarshal(e.Body, &project)
+			log.Println(project)
+		}
 	}
 
 	return nil
@@ -45,11 +74,13 @@ func (r *projectRepository) AssignEmployee(ctx context.Context, projectID staffi
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if r.projects[projectID] == nil {
-		return staffing.ErrProjectNotFound
+	id := uuid.NewString()
+	r.events[id] = &staffing.Event{
+		ID:        id,
+		Timestamp: time.Now(),
+		Type:      "employee_assigned",
+		Body:      []byte(`{"project_id": "` + string(projectID) + `", "employee_id": "` + string(employeeID) + `"}`),
 	}
-
-	r.projects[projectID].AssignedEmployees = append(r.projects[projectID].AssignedEmployees, employeeID)
 
 	return nil
 }
@@ -58,15 +89,12 @@ func (r *projectRepository) UnassignEmployee(ctx context.Context, projectID staf
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if r.projects[projectID] == nil {
-		return staffing.ErrProjectNotFound
-	}
-
-	for i, id := range r.projects[projectID].AssignedEmployees {
-		if id == employeeID {
-			r.projects[projectID].AssignedEmployees = append(r.projects[projectID].AssignedEmployees[:i], r.projects[projectID].AssignedEmployees[i+1:]...)
-			break
-		}
+	id := uuid.NewString()
+	r.events[id] = &staffing.Event{
+		ID:        id,
+		Timestamp: time.Now(),
+		Type:      "employee_unassigned",
+		Body:      []byte(`{"project_id": "` + string(projectID) + `", "employee_id": "` + string(employeeID) + `"}`),
 	}
 
 	return nil

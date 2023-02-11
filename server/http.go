@@ -20,7 +20,7 @@ import (
 
 // httpServer holds the dependencies for an HTTP server with pubsub handlers
 type httpServer struct {
-	Project    project.Service
+	Project    project.CommandService
 	Department department.Service
 
 	Logger watermill.LoggerAdapter
@@ -30,7 +30,7 @@ type httpServer struct {
 }
 
 // NewHTTPServer returns a new Server
-func NewHTTPServer(ps project.Service, ds department.Service, address string, logger watermill.LoggerAdapter) Server {
+func NewHTTPServer(ps project.CommandService, ds department.Service, address string, logger watermill.LoggerAdapter) Server {
 	s := &httpServer{
 		Project:    ps,
 		Department: ds,

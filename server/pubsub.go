@@ -13,7 +13,7 @@ import (
 )
 
 type pubsubServer struct {
-	Project    project.Service
+	Project    project.CommandService
 	Department department.Service
 
 	Logger watermill.LoggerAdapter
@@ -21,7 +21,7 @@ type pubsubServer struct {
 	router *message.Router
 }
 
-func NewPubSubServer(ps project.Service, ds department.Service, publisher message.Publisher, subscriber message.Subscriber, logger watermill.LoggerAdapter) Server {
+func NewPubSubServer(ps project.CommandService, ds department.Service, publisher message.Publisher, subscriber message.Subscriber, logger watermill.LoggerAdapter) Server {
 	s := &pubsubServer{
 		Project:    ps,
 		Department: ds,
