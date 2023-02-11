@@ -52,7 +52,12 @@ func (r *departmentRepository) UnassignEmployee(ctx context.Context, departmentI
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	// TODO implement unassign employee handler for inmem repository
+	for i, employee := range r.departments[departmentID].Employees {
+		if employee.ID == employeeID {
+			r.departments[departmentID].Employees = append(r.departments[departmentID].Employees[:i], r.departments[departmentID].Employees[i+1:]...)
+			break
+		}
+	}
 
 	return nil
 }

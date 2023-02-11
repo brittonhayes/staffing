@@ -17,8 +17,9 @@ type ProjectRepository interface {
 type ProjectID string
 
 type Project struct {
-	ID   ProjectID
-	Name string
+	ID                ProjectID
+	Name              string
+	AssignedEmployees []EmployeeID
 }
 
 type EmployeeID string

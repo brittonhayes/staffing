@@ -14,9 +14,14 @@ type projectRepository struct {
 }
 
 func NewProjectRepository() staffing.ProjectRepository {
-	return &projectRepository{
+	repository := &projectRepository{
 		projects: make(map[staffing.ProjectID]*staffing.Project),
 	}
+
+	repository.projects[cloudMigration.ID] = cloudMigration
+	repository.projects[marketing.ID] = marketing
+
+	return repository
 }
 
 func (r *projectRepository) Close() error {
@@ -40,7 +45,11 @@ func (r *projectRepository) AssignEmployee(ctx context.Context, projectID staffi
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	// TODO implement assign employee handler for inmem repository
+	if r.projects[projectID] == nil {
+		return staffing.ErrProjectNotFound
+	}
+
+	r.projects[projectID].AssignedEmployees = append(r.projects[projectID].AssignedEmployees, employeeID)
 
 	return nil
 }
@@ -49,7 +58,16 @@ func (r *projectRepository) UnassignEmployee(ctx context.Context, projectID staf
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	// TODO implement unassign employee handler for inmem repository
+	if r.projects[projectID] == nil {
+		return staffing.ErrProjectNotFound
+	}
+
+	for i, id := range r.projects[projectID].AssignedEmployees {
+		if id == employeeID {
+			r.projects[projectID].AssignedEmployees = append(r.projects[projectID].AssignedEmployees[:i], r.projects[projectID].AssignedEmployees[i+1:]...)
+			break
+		}
+	}
 
 	return nil
 }
