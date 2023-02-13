@@ -6,6 +6,7 @@ import (
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/brittonhayes/staffing"
+	"github.com/google/uuid"
 )
 
 type departmentRepository struct {
@@ -28,8 +29,9 @@ func (r *departmentRepository) CreateDepartment(ctx context.Context, name string
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	r.departments[staffing.DepartmentID(name)] = &staffing.Department{
-		ID:   staffing.DepartmentID(name),
+	id := staffing.DepartmentID(uuid.NewString())
+	r.departments[id] = &staffing.Department{
+		ID:   id,
 		Name: name,
 	}
 

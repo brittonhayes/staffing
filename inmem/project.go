@@ -33,8 +33,9 @@ func (r *projectRepository) CreateProject(ctx context.Context, name string) erro
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	r.projects[staffing.ProjectID(name)] = &staffing.Project{
-		ID:   staffing.ProjectID(uuid.NewString()),
+	id := staffing.ProjectID(uuid.NewString())
+	r.projects[id] = &staffing.Project{
+		ID:   id,
 		Name: name,
 	}
 
