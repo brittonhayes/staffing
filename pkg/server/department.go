@@ -7,8 +7,8 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/brittonhayes/staffing/department"
 	"github.com/brittonhayes/staffing/internal/protobuf"
+	"github.com/brittonhayes/staffing/pkg/department"
 	"github.com/brittonhayes/staffing/proto/pb"
 	"github.com/go-chi/chi"
 )

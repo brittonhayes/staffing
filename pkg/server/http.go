@@ -11,8 +11,8 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/brittonhayes/staffing"
-	"github.com/brittonhayes/staffing/department"
-	"github.com/brittonhayes/staffing/project"
+	"github.com/brittonhayes/staffing/pkg/department"
+	"github.com/brittonhayes/staffing/pkg/project"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
