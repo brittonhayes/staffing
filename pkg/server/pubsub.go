@@ -8,8 +8,8 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
-	"github.com/brittonhayes/staffing/department"
-	"github.com/brittonhayes/staffing/project"
+	"github.com/brittonhayes/staffing/pkg/department"
+	"github.com/brittonhayes/staffing/pkg/project"
 )
 
 type pubsubServer struct {

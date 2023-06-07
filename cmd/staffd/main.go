@@ -15,12 +15,12 @@ import (
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/brittonhayes/staffing"
-	"github.com/brittonhayes/staffing/department"
-	"github.com/brittonhayes/staffing/inmem"
-	"github.com/brittonhayes/staffing/kv"
-	"github.com/brittonhayes/staffing/project"
+	"github.com/brittonhayes/staffing/pkg/department"
+	"github.com/brittonhayes/staffing/pkg/inmem"
+	"github.com/brittonhayes/staffing/pkg/kv"
+	"github.com/brittonhayes/staffing/pkg/project"
 	"github.com/brittonhayes/staffing/proto/pb"
-	"github.com/brittonhayes/staffing/server"
+	"github.com/brittonhayes/staffing/pkg/server"
 	"google.golang.org/protobuf/proto"
 )
 
