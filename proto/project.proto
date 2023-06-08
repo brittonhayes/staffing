@@ -8,20 +8,13 @@ option go_package = "./pb;pb";
 
 service Project {
     rpc CreateProject(ProjectCreateCommand) returns (google.protobuf.Empty) {}
-    rpc AssignEmployee(ProjectAssignEmployeeCommand) returns (google.protobuf.Empty) {}
-    rpc UnassignEmployee(ProjectUnassignEmployeeCommand) returns (google.protobuf.Empty) {}
+    rpc DeleteProject(ProjectDeleteCommand) returns (google.protobuf.Empty) {}
 }
 
 message ProjectCreateCommand {
     string name = 2;
 }
 
-message ProjectAssignEmployeeCommand {
+message ProjectDeleteCommand {
     string project_id = 1;
-    string employee_id = 2;
-}
-
-message ProjectUnassignEmployeeCommand {
-    string project_id = 1;
-    string employee_id = 2;
 }

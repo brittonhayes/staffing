@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/brianvoe/gofakeit/v6"
 	"github.com/brittonhayes/staffing"
 	"github.com/google/uuid"
 )
@@ -38,28 +37,10 @@ func (r *departmentRepository) CreateDepartment(ctx context.Context, name string
 	return nil
 }
 
-func (r *departmentRepository) AssignEmployee(ctx context.Context, departmentID staffing.DepartmentID, employeeID staffing.EmployeeID) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (r *departmentRepository) DeleteDepartment(ctx context.Context, departmentID staffing.DepartmentID) error {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 
-	r.departments[departmentID].Employees = append(r.departments[departmentID].Employees, staffing.Employee{
-		ID:   employeeID,
-		Name: gofakeit.Name(),
-	})
-
-	return nil
-}
-
-func (r *departmentRepository) UnassignEmployee(ctx context.Context, departmentID staffing.DepartmentID, employeeID staffing.EmployeeID) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	for i, employee := range r.departments[departmentID].Employees {
-		if employee.ID == employeeID {
-			r.departments[departmentID].Employees = append(r.departments[departmentID].Employees[:i], r.departments[departmentID].Employees[i+1:]...)
-			break
-		}
-	}
-
+	r.departments[departmentID] = nil
 	return nil
 }

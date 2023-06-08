@@ -15,8 +15,7 @@ var ErrInvalidArgument = errors.New("invalid argument")
 // Service is the interface that provides project methods.
 type Service interface {
 	CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) error
-	AssignEmployee(ctx context.Context, command *pb.ProjectAssignEmployeeCommand) error
-	UnassignEmployee(ctx context.Context, command *pb.ProjectUnassignEmployeeCommand) error
+	DeleteProject(ctx context.Context, command *pb.ProjectDeleteCommand) error
 }
 
 type service struct {
@@ -36,25 +35,12 @@ func (s *service) CreateProject(ctx context.Context, command *pb.ProjectCreateCo
 	return nil
 }
 
-func (s *service) AssignEmployee(ctx context.Context, command *pb.ProjectAssignEmployeeCommand) error {
-	if command.ProjectId == "" || command.EmployeeId == "" {
+func (s *service) DeleteProject(ctx context.Context, command *pb.ProjectDeleteCommand) error {
+	if command.ProjectId == "" {
 		return ErrInvalidArgument
 	}
 
-	err := s.projects.AssignEmployee(ctx, staffing.ProjectID(command.ProjectId), staffing.EmployeeID(command.EmployeeId))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *service) UnassignEmployee(ctx context.Context, command *pb.ProjectUnassignEmployeeCommand) error {
-	if command.ProjectId == "" || command.EmployeeId == "" {
-		return ErrInvalidArgument
-	}
-
-	err := s.projects.UnassignEmployee(ctx, staffing.ProjectID(command.ProjectId), staffing.EmployeeID(command.EmployeeId))
+	err := s.projects.DeleteProject(ctx, staffing.ProjectID(command.ProjectId))
 	if err != nil {
 		return err
 	}

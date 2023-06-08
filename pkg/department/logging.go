@@ -25,18 +25,10 @@ func (s *loggingService) CreateDepartment(ctx context.Context, command *pb.Depar
 	return s.next.CreateDepartment(ctx, command)
 }
 
-func (s *loggingService) AssignEmployee(ctx context.Context, command *pb.DepartmentAssignEmployeeCommand) error {
-	s.logger.Info("AssignEmployee", watermill.LogFields{
+func (s *loggingService) DeleteDepartment(ctx context.Context, command *pb.DepartmentDeleteCommand) error {
+	s.logger.Info("DeleteDepartment", watermill.LogFields{
 		"command": command,
 	})
 
-	return s.next.AssignEmployee(ctx, command)
-}
-
-func (s *loggingService) UnassignEmployee(ctx context.Context, command *pb.DepartmentUnassignEmployeeCommand) error {
-	s.logger.Info("UnassignEmployee", watermill.LogFields{
-		"command": command,
-	})
-
-	return s.next.UnassignEmployee(ctx, command)
+	return s.next.DeleteDepartment(ctx, command)
 }

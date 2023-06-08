@@ -1,4 +1,4 @@
-package project
+package employee
 
 import (
 	"context"
@@ -17,18 +17,18 @@ func NewLoggingService(logger watermill.LoggerAdapter, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) error {
-	s.logger.Info("CreateProject", watermill.LogFields{
+func (s *loggingService) CreateEmployee(ctx context.Context, command *pb.EmployeeCreateCommand) error {
+	s.logger.Info("CreateEmployee", watermill.LogFields{
 		"command": command,
 	})
 
-	return s.next.CreateProject(ctx, command)
+	return s.next.CreateEmployee(ctx, command)
 }
 
-func (s *loggingService) DeleteProject(ctx context.Context, command *pb.ProjectDeleteCommand) error {
-	s.logger.Info("DeleteProject", watermill.LogFields{
+func (s *loggingService) DeleteEmployee(ctx context.Context, command *pb.EmployeeDeleteCommand) error {
+	s.logger.Info("DeleteEmployee", watermill.LogFields{
 		"command": command,
 	})
 
-	return s.next.DeleteProject(ctx, command)
+	return s.next.DeleteEmployee(ctx, command)
 }

@@ -32,20 +32,11 @@ func (s *instrumentingService) CreateDepartment(ctx context.Context, command *pb
 	return s.next.CreateDepartment(ctx, command)
 }
 
-func (s *instrumentingService) AssignEmployee(ctx context.Context, command *pb.DepartmentAssignEmployeeCommand) error {
+func (s *instrumentingService) DeleteDepartment(ctx context.Context, command *pb.DepartmentDeleteCommand) error {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "AssignEmployee").Add(1)
-		s.requestLatency.With("method", "AssignEmployee").Observe(time.Since(begin).Seconds())
+		s.requestCount.With("method", "DeleteDepartment").Add(1)
+		s.requestLatency.With("method", "DeleteDepartment").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.next.AssignEmployee(ctx, command)
-}
-
-func (s *instrumentingService) UnassignEmployee(ctx context.Context, command *pb.DepartmentUnassignEmployeeCommand) error {
-	defer func(begin time.Time) {
-		s.requestCount.With("method", "UnassignEmployee").Add(1)
-		s.requestLatency.With("method", "UnassignEmployee").Observe(time.Since(begin).Seconds())
-	}(time.Now())
-
-	return s.next.UnassignEmployee(ctx, command)
+	return s.next.DeleteDepartment(ctx, command)
 }

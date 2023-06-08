@@ -16,11 +16,12 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/brittonhayes/staffing"
 	"github.com/brittonhayes/staffing/pkg/department"
+	"github.com/brittonhayes/staffing/pkg/employee"
 	"github.com/brittonhayes/staffing/pkg/inmem"
 	"github.com/brittonhayes/staffing/pkg/kv"
 	"github.com/brittonhayes/staffing/pkg/project"
-	"github.com/brittonhayes/staffing/proto/pb"
 	"github.com/brittonhayes/staffing/pkg/server"
+	"github.com/brittonhayes/staffing/proto/pb"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -39,18 +40,23 @@ func main() {
 	var (
 		projects    staffing.ProjectRepository
 		departments staffing.DepartmentRepository
+		employees   staffing.EmployeeRepository
 	)
 
 	if *inmemory {
 		logger.Debug("Using in-memory repositories", nil)
 		projects = inmem.NewProjectRepository()
 		departments = inmem.NewDepartmentRepository()
+		employees = inmem.NewEmployeeRepository()
 	} else {
 		projects = kv.NewProjectRepository("projects.db")
 		defer projects.Close()
 
 		departments = kv.NewDepartmentRepository("departments.db")
 		defer departments.Close()
+
+		employees = kv.NewEmployeeRepository("employees.db")
+		defer employees.Close()
 	}
 
 	fieldKeys := []string{"method"}
@@ -89,11 +95,28 @@ func main() {
 		departmentSvc,
 	)
 
+	employeeSvc := employee.NewService(employees)
+	employeeSvc = employee.NewLoggingService(logger.With(watermill.LogFields{"service": "employee"}), employeeSvc)
+	employeeSvc = employee.NewInstrumentingService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "employee_service",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "employee_service",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys),
+		employeeSvc,
+	)
+
 	subscriber := gochannel.NewGoChannel(gochannel.Config{}, logger)
 	publisher := gochannel.NewGoChannel(gochannel.Config{}, logger)
 
-	httpServer := server.NewHTTPServer(projectSvc, departmentSvc, *httpAddress, logger)
-	pubsubServer := server.NewPubSubServer(projectSvc, departmentSvc, subscriber, publisher, logger)
+	httpServer := server.NewHTTPServer(projectSvc, departmentSvc, employeeSvc, *httpAddress, logger)
+	pubsubServer := server.NewPubSubServer(projectSvc, departmentSvc, employeeSvc, subscriber, publisher, logger)
 
 	// Run servers in multiple goroutines
 	wg := new(sync.WaitGroup)
@@ -114,7 +137,7 @@ func main() {
 
 // publish messages simulates a client publishing messages to the server
 func publishMessages(ctx context.Context, publisher message.Publisher) {
-	time.Sleep(10 * time.Second)
+
 	for {
 		projectCmd, err := proto.Marshal(&pb.ProjectCreateCommand{
 			Name: gofakeit.Name(),

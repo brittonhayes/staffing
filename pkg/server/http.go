@@ -12,6 +12,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/brittonhayes/staffing"
 	"github.com/brittonhayes/staffing/pkg/department"
+	"github.com/brittonhayes/staffing/pkg/employee"
 	"github.com/brittonhayes/staffing/pkg/project"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -30,7 +31,7 @@ type httpServer struct {
 }
 
 // NewHTTPServer returns a new Server
-func NewHTTPServer(ps project.Service, ds department.Service, address string, logger watermill.LoggerAdapter) Server {
+func NewHTTPServer(ps project.Service, ds department.Service, es employee.Service, address string, logger watermill.LoggerAdapter) Server {
 	s := &httpServer{
 		Project:    ps,
 		Department: ds,
@@ -48,6 +49,11 @@ func NewHTTPServer(ps project.Service, ds department.Service, address string, lo
 		logger:  logger,
 	}
 
+	eh := &employeeHttpHandler{
+		service: es,
+		logger:  logger,
+	}
+
 	router := chi.NewRouter()
 
 	router.Use(middleware.RequestID)
@@ -56,6 +62,7 @@ func NewHTTPServer(ps project.Service, ds department.Service, address string, lo
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Mount("/projects", ph.router())
 		r.Mount("/departments", dh.router())
+		r.Mount("/employees", eh.router())
 	})
 
 	router.Method(http.MethodGet, "/metrics", promhttp.Handler())
@@ -79,7 +86,8 @@ func (s *httpServer) Run(ctx context.Context) error {
 		<-sig
 
 		// Shutdown signal with grace period of 30 seconds
-		shutdownCtx, _ := context.WithTimeout(serverCtx, 30*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(serverCtx, 30*time.Second)
+		defer cancel()
 
 		go func() {
 			<-shutdownCtx.Done()

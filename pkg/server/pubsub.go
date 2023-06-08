@@ -9,22 +9,25 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
 	"github.com/brittonhayes/staffing/pkg/department"
+	"github.com/brittonhayes/staffing/pkg/employee"
 	"github.com/brittonhayes/staffing/pkg/project"
 )
 
 type pubsubServer struct {
 	Project    project.Service
 	Department department.Service
+	Employee   employee.Service
 
 	Logger watermill.LoggerAdapter
 
 	router *message.Router
 }
 
-func NewPubSubServer(ps project.Service, ds department.Service, publisher message.Publisher, subscriber message.Subscriber, logger watermill.LoggerAdapter) Server {
-	s := &pubsubServer{
-		Project:    ps,
-		Department: ds,
+func NewPubSubServer(projectService project.Service, departmentService department.Service, employeeService employee.Service, publisher message.Publisher, subscriber message.Subscriber, logger watermill.LoggerAdapter) Server {
+	server := &pubsubServer{
+		Project:    projectService,
+		Department: departmentService,
+		Employee:   employeeService,
 		Logger:     logger,
 	}
 
@@ -37,24 +40,30 @@ func NewPubSubServer(ps project.Service, ds department.Service, publisher messag
 	router.AddMiddleware(middleware.Recoverer, middleware.Retry{
 		MaxRetries:      3,
 		InitialInterval: time.Millisecond * 100,
-		Logger:          s.Logger,
+		Logger:          server.Logger,
 	}.Middleware)
 
-	ph := &projectPubsubHandler{
-		service: ps,
+	projectHandler := &projectPubsubHandler{
+		service: projectService,
 		logger:  logger,
 	}
-	ph.addHandlers(router, publisher, subscriber)
+	projectHandler.addHandlers(router, publisher, subscriber)
 
-	dh := &departmentPubsubHandler{
-		service: ds,
+	departmentHandler := &departmentPubsubHandler{
+		service: departmentService,
 		logger:  logger,
 	}
-	dh.addHandlers(router, publisher, subscriber)
+	departmentHandler.addHandlers(router, publisher, subscriber)
 
-	s.router = router
+	employeeHandler := &employeePubsubHandler{
+		service: employeeService,
+		logger:  logger,
+	}
+	employeeHandler.addHandlers(router, publisher, subscriber)
 
-	return s
+	server.router = router
+
+	return server
 }
 
 // RunPubSub runs the pubsub router

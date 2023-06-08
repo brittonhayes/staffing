@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package staffing.employee.v1;
+
+option go_package = "./pb;pb";
+
+service Employee {
+    rpc CreateEmployee(EmployeeCreateCommand) returns (google.protobuf.Empty);
+    rpc DeleteEmployee(EmployeeDeleteCommand) returns (google.protobuf.Empty);
+    rpc AssignProject(EmployeeAssignProjectCommand) returns (google.protobuf.Empty);
+    rpc UnassignEmployee(EmployeeUnassignProjectCommand) returns (google.protobuf.Empty);
+}
+
+message EmployeeCreateCommand {
+    string name = 1; 
+}
+
+message EmployeeDeleteCommand {
+    string employeeId = 1;
+}
+
+message EmployeeAssignProjectCommand {
+    string projectId = 1;
+    string employeeId = 2; 
+}
+
+message EmployeeUnassignProjectCommand {
+    string departmentId = 1;
+    string employeeId = 2; 
+}

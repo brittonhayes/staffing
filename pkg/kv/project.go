@@ -32,12 +32,12 @@ func (r *projectRepository) Close() error {
 
 func (r *projectRepository) CreateProject(ctx context.Context, name string) error {
 	id := uuid.NewString()
-	department := &staffing.Project{
+	project := &staffing.Project{
 		ID:   staffing.ProjectID(id),
 		Name: name,
 	}
 
-	b, err := json.Marshal(department)
+	b, err := json.Marshal(project)
 	if err != nil {
 		return err
 	}
@@ -52,10 +52,8 @@ func (r *projectRepository) CreateProject(ctx context.Context, name string) erro
 	})
 }
 
-func (r *projectRepository) AssignEmployee(ctx context.Context, projectID staffing.ProjectID, employeeID staffing.EmployeeID) error {
-	return nil
-}
-
-func (r *projectRepository) UnassignEmployee(ctx context.Context, projectID staffing.ProjectID, employeeID staffing.EmployeeID) error {
-	return nil
+func (r *projectRepository) DeleteProject(ctx context.Context, projectID staffing.ProjectID) error {
+	return r.db.Update(func(tx *bbolt.Tx) error {
+		return tx.DeleteBucket([]byte(projectID))
+	})
 }

@@ -15,8 +15,7 @@ var ErrInvalidArgument = errors.New("invalid argument")
 // Service is the interface that provides department methods.
 type Service interface {
 	CreateDepartment(ctx context.Context, command *pb.DepartmentCreateCommand) error
-	AssignEmployee(ctx context.Context, command *pb.DepartmentAssignEmployeeCommand) error
-	UnassignEmployee(ctx context.Context, command *pb.DepartmentUnassignEmployeeCommand) error
+	DeleteDepartment(ctx context.Context, command *pb.DepartmentDeleteCommand) error
 }
 
 type service struct {
@@ -36,25 +35,12 @@ func (s *service) CreateDepartment(ctx context.Context, command *pb.DepartmentCr
 	return nil
 }
 
-func (s *service) AssignEmployee(ctx context.Context, command *pb.DepartmentAssignEmployeeCommand) error {
-	if command.DepartmentId == "" || command.EmployeeId == "" {
+func (s *service) DeleteDepartment(ctx context.Context, command *pb.DepartmentDeleteCommand) error {
+	if command.DepartmentId == "" {
 		return ErrInvalidArgument
 	}
 
-	err := s.departments.AssignEmployee(ctx, staffing.DepartmentID(command.DepartmentId), staffing.EmployeeID(command.EmployeeId))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *service) UnassignEmployee(ctx context.Context, command *pb.DepartmentUnassignEmployeeCommand) error {
-	if command.DepartmentId == "" || command.EmployeeId == "" {
-		return ErrInvalidArgument
-	}
-
-	err := s.departments.UnassignEmployee(ctx, staffing.DepartmentID(command.DepartmentId), staffing.EmployeeID(command.EmployeeId))
+	err := s.departments.DeleteDepartment(ctx, staffing.DepartmentID(command.DepartmentId))
 	if err != nil {
 		return err
 	}

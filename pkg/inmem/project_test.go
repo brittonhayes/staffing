@@ -20,9 +20,9 @@ func Test_ProjectRepository_CreateProject(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_ProjectRepository_AssignEmployee(t *testing.T) {
+func Test_ProjectRepository_DeleteProject(t *testing.T) {
 	repo := NewProjectRepository()
-	err := repo.AssignEmployee(context.Background(), marketing.ID, john.ID)
+	err := repo.DeleteProject(context.Background(), marketing.ID)
 
 	assert.NoError(t, err)
 }

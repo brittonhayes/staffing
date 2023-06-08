@@ -1,4 +1,4 @@
-package project
+package employee
 
 import (
 	"context"
@@ -23,20 +23,20 @@ func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram,
 	}
 }
 
-func (s *instrumentingService) CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) error {
+func (s *instrumentingService) CreateEmployee(ctx context.Context, command *pb.EmployeeCreateCommand) error {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "CreateProject").Add(1)
-		s.requestLatency.With("method", "CreateProject").Observe(time.Since(begin).Seconds())
+		s.requestCount.With("method", "CreateEmployee").Add(1)
+		s.requestLatency.With("method", "CreateEmployee").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.next.CreateProject(ctx, command)
+	return s.next.CreateEmployee(ctx, command)
 }
 
-func (s *instrumentingService) DeleteProject(ctx context.Context, command *pb.ProjectDeleteCommand) error {
+func (s *instrumentingService) DeleteEmployee(ctx context.Context, command *pb.EmployeeDeleteCommand) error {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "DeleteProject").Add(1)
-		s.requestLatency.With("method", "DeleteProject").Observe(time.Since(begin).Seconds())
+		s.requestCount.With("method", "DeleteEmployee").Add(1)
+		s.requestLatency.With("method", "DeleteEmployee").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.next.DeleteProject(ctx, command)
+	return s.next.DeleteEmployee(ctx, command)
 }

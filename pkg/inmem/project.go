@@ -42,7 +42,7 @@ func (r *projectRepository) CreateProject(ctx context.Context, name string) erro
 	return nil
 }
 
-func (r *projectRepository) AssignEmployee(ctx context.Context, projectID staffing.ProjectID, employeeID staffing.EmployeeID) error {
+func (r *projectRepository) DeleteProject(ctx context.Context, projectID staffing.ProjectID) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -50,25 +50,7 @@ func (r *projectRepository) AssignEmployee(ctx context.Context, projectID staffi
 		return staffing.ErrProjectNotFound
 	}
 
-	r.projects[projectID].AssignedEmployees = append(r.projects[projectID].AssignedEmployees, employeeID)
-
-	return nil
-}
-
-func (r *projectRepository) UnassignEmployee(ctx context.Context, projectID staffing.ProjectID, employeeID staffing.EmployeeID) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if r.projects[projectID] == nil {
-		return staffing.ErrProjectNotFound
-	}
-
-	for i, id := range r.projects[projectID].AssignedEmployees {
-		if id == employeeID {
-			r.projects[projectID].AssignedEmployees = append(r.projects[projectID].AssignedEmployees[:i], r.projects[projectID].AssignedEmployees[i+1:]...)
-			break
-		}
-	}
+	r.projects[projectID] = nil
 
 	return nil
 }
