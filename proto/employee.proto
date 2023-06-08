@@ -27,6 +27,5 @@ message EmployeeAssignProjectCommand {
 }
 
 message EmployeeUnassignProjectCommand {
-    string departmentId = 1;
     string employeeId = 2; 
 }

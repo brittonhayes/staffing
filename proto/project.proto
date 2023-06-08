@@ -16,5 +16,5 @@ message ProjectCreateCommand {
 }
 
 message ProjectDeleteCommand {
-    string project_id = 1;
+    string projectId = 1;
 }
