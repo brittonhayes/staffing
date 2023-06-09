@@ -52,6 +52,7 @@ func (h *employeeHttpHandler) deleteEmployeeHandler(w http.ResponseWriter, r *ht
 
 	err = h.service.DeleteEmployee(ctx, &request)
 	if err != nil {
+		h.logger.Error("error", err, nil)
 		encodeError(ctx, err, w)
 		return
 	}
@@ -73,6 +74,7 @@ func (h *employeeHttpHandler) createEmployeeHandler(w http.ResponseWriter, r *ht
 
 	resp, err := h.service.CreateEmployee(ctx, &request)
 	if err != nil {
+		h.logger.Error("error", err, nil)
 		encodeError(ctx, err, w)
 		return
 	}
@@ -103,6 +105,7 @@ func (h *employeePubsubHandler) createEmployee(msg *message.Message) ([]*message
 
 	_, err = h.service.CreateEmployee(context.Background(), &command)
 	if err != nil {
+		h.logger.Error("error", err, nil)
 		return nil, err
 	}
 

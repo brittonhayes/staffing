@@ -6,6 +6,7 @@ import (
 )
 
 var ErrEmployeeNotFound = errors.New("employee not found")
+var ErrEmployeeInvalidArg = errors.New("invalid arguments to create employee")
 
 type EmployeeRepository interface {
 	CreateEmployee(ctx context.Context, name string) (*Employee, error)
@@ -27,4 +28,12 @@ type Employee struct {
 	Name               string       `json:"name"`
 	AssignedProject    ProjectID    `json:"assigned_project"`
 	AssignedDepartment DepartmentID `json:"assigned_department"`
+}
+
+func (e *Employee) ValidateCreate() error {
+	if e.Name == "" {
+		return ErrEmployeeInvalidArg
+	}
+
+	return nil
 }

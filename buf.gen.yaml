@@ -1,4 +1,6 @@
 version: v1
 plugins:
+  - plugin: buf.build/bufbuild/validate-go
+    out: proto
   - name: go
     out: proto

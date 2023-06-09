@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
+import "validate/validate.proto";
 
 package staffing.employee.v1;
 
@@ -14,7 +15,7 @@ service Employee {
 }
 
 message EmployeeCreateCommand {
-    string name = 1; 
+    string name = 1 [(validate.rules).string.len = 3]; 
 }
 
 message EmployeeCreateResponse {

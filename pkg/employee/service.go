@@ -25,8 +25,9 @@ type service struct {
 }
 
 func (s *service) CreateEmployee(ctx context.Context, command *pb.EmployeeCreateCommand) (*staffing.Employee, error) {
-	if command.Name == "" {
-		return nil, ErrInvalidArgument
+
+	if err := command.ValidateAll(); err != nil {
+		return nil, err
 	}
 
 	resp, err := s.employees.CreateEmployee(ctx, command.Name)
