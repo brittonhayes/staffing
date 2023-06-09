@@ -21,13 +21,14 @@ import (
 	"github.com/brittonhayes/staffing/pkg/kv"
 	"github.com/brittonhayes/staffing/pkg/project"
 	"github.com/brittonhayes/staffing/pkg/server"
+	"github.com/brittonhayes/staffing/pkg/sqlite"
 	"github.com/brittonhayes/staffing/proto/pb"
 	"google.golang.org/protobuf/proto"
 )
 
 func main() {
 	var (
-		inmemory    = flag.Bool("inmem", false, "use in-memory repositories (default false)")
+		storage     = flag.String("storage", "inmemory", "select storage type from inmemory,kv,sqlite (default inmemory)")
 		debug       = flag.Bool("debug", false, "enable debug logging (default false)")
 		trace       = flag.Bool("trace", false, "enable tracing (default false)")
 		httpAddress = flag.String("address", ":8080", "HTTP address port (default :8080)")
@@ -43,12 +44,14 @@ func main() {
 		employees   staffing.EmployeeRepository
 	)
 
-	if *inmemory {
+	switch *storage {
+	case "inmemory":
 		logger.Debug("Using in-memory repositories", nil)
 		projects = inmem.NewProjectRepository()
 		departments = inmem.NewDepartmentRepository()
 		employees = inmem.NewEmployeeRepository()
-	} else {
+		break
+	case "kv":
 		projects = kv.NewProjectRepository("projects.db")
 		defer projects.Close()
 
@@ -56,6 +59,9 @@ func main() {
 		defer departments.Close()
 
 		employees = kv.NewEmployeeRepository("employees.db")
+		defer employees.Close()
+	case "sqlite":
+		employees = sqlite.NewEmployeeRepository()
 		defer employees.Close()
 	}
 

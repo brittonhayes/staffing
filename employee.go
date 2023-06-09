@@ -3,10 +3,11 @@ package staffing
 import (
 	"context"
 	"errors"
+
+	"github.com/uptrace/bun"
 )
 
 var ErrEmployeeNotFound = errors.New("employee not found")
-var ErrEmployeeInvalidArg = errors.New("invalid arguments to create employee")
 
 type EmployeeRepository interface {
 	CreateEmployee(ctx context.Context, name string) (*Employee, error)
@@ -24,16 +25,10 @@ type EmployeeRepository interface {
 type EmployeeID string
 
 type Employee struct {
-	ID                 EmployeeID   `json:"id"`
+	bun.BaseModel `bun:"table:employees,alias:e"`
+
+	ID                 EmployeeID   `json:"id" bun:",pk"`
 	Name               string       `json:"name"`
 	AssignedProject    ProjectID    `json:"assigned_project"`
 	AssignedDepartment DepartmentID `json:"assigned_department"`
-}
-
-func (e *Employee) ValidateCreate() error {
-	if e.Name == "" {
-		return ErrEmployeeInvalidArg
-	}
-
-	return nil
 }

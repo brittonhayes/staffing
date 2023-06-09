@@ -27,9 +27,9 @@ The service can be run with a few different customization options. These options
 
 ```bash
 # OR run the service with in-memory storage and debug logging
-go run ./cmd/staffd/main.go -inmem -debug
+go run ./cmd/staffd/main.go -storage inmem -debug
 # OR run the service with BoltDB storage and debug logging
-go run ./cmd/staffd/main.go -debug
+go run ./cmd/staffd/main.go -storage kv -debug
 ```
 
 ## Docker
