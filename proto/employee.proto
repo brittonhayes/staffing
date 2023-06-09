@@ -15,7 +15,7 @@ service Employee {
 }
 
 message EmployeeCreateCommand {
-    string name = 1 [(validate.rules).string.len = 3]; 
+    string name = 1 [(validate.rules).string.min_len = 3]; 
 }
 
 message EmployeeCreateResponse {

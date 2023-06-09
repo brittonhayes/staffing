@@ -57,16 +57,15 @@ func (m *EmployeeCreateCommand) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetName()) != 3 {
+	if utf8.RuneCountInString(m.GetName()) < 3 {
 		err := EmployeeCreateCommandValidationError{
 			field:  "Name",
-			reason: "value length must be 3 runes",
+			reason: "value length must be at least 3 runes",
 		}
 		if !all {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {
