@@ -7,25 +7,30 @@ package staffing.employee.v1;
 option go_package = "./pb;pb";
 
 service Employee {
-    rpc CreateEmployee(EmployeeCreateCommand) returns (google.protobuf.Empty);
+    rpc CreateEmployee(EmployeeCreateCommand) returns (EmployeeCreateResponse);
     rpc DeleteEmployee(EmployeeDeleteCommand) returns (google.protobuf.Empty);
     rpc AssignProject(EmployeeAssignProjectCommand) returns (google.protobuf.Empty);
-    rpc UnassignEmployee(EmployeeUnassignProjectCommand) returns (google.protobuf.Empty);
+    rpc UnassignProject(EmployeeUnassignProjectCommand) returns (google.protobuf.Empty);
 }
 
 message EmployeeCreateCommand {
     string name = 1; 
 }
 
+message EmployeeCreateResponse {
+   string id = 1;
+   string name = 2;
+}
+
 message EmployeeDeleteCommand {
-    string employeeId = 1;
+    string id = 1;
 }
 
 message EmployeeAssignProjectCommand {
-    string projectId = 1;
-    string employeeId = 2; 
+    string id = 1; 
+    string projectId = 2;
 }
 
 message EmployeeUnassignProjectCommand {
-    string employeeId = 2; 
+    string id = 1; 
 }

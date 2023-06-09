@@ -33,9 +33,31 @@ func (h *employeeHttpHandler) router() chi.Router {
 
 	r.Route("/", func(r chi.Router) {
 		r.Post("/", h.createEmployeeHandler)
+		r.Delete("/", h.deleteEmployeeHandler)
 	})
 
 	return r
+}
+
+func (h *employeeHttpHandler) deleteEmployeeHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	var request pb.EmployeeDeleteCommand
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		encodeError(ctx, err, w)
+		return
+	}
+
+	err = h.service.DeleteEmployee(ctx, &request)
+	if err != nil {
+		encodeError(ctx, err, w)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(&request)
 }
 
 func (h *employeeHttpHandler) createEmployeeHandler(w http.ResponseWriter, r *http.Request) {
@@ -49,13 +71,14 @@ func (h *employeeHttpHandler) createEmployeeHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	err = h.service.CreateEmployee(ctx, &request)
+	resp, err := h.service.CreateEmployee(ctx, &request)
 	if err != nil {
 		encodeError(ctx, err, w)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(resp)
 }
 
 type employeePubsubHandler struct {
@@ -78,7 +101,7 @@ func (h *employeePubsubHandler) createEmployee(msg *message.Message) ([]*message
 		return nil, err
 	}
 
-	err = h.service.CreateEmployee(context.Background(), &command)
+	_, err = h.service.CreateEmployee(context.Background(), &command)
 	if err != nil {
 		return nil, err
 	}

@@ -28,8 +28,8 @@ func (r *employeeRepository) Close() error {
 	return r.db.Close()
 }
 
-func (r *employeeRepository) CreateEmployee(ctx context.Context, name string) error {
-	return nil
+func (r *employeeRepository) CreateEmployee(ctx context.Context, name string) (*staffing.Employee, error) {
+	return nil, nil
 }
 
 func (r *employeeRepository) DeleteEmployee(ctx context.Context, employeeID staffing.EmployeeID) error {

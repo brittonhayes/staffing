@@ -24,7 +24,7 @@ func (r *employeeRepository) Close() error {
 	return nil
 }
 
-func (r *employeeRepository) CreateEmployee(ctx context.Context, name string) error {
+func (r *employeeRepository) CreateEmployee(ctx context.Context, name string) (*staffing.Employee, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -34,7 +34,7 @@ func (r *employeeRepository) CreateEmployee(ctx context.Context, name string) er
 		Name: name,
 	}
 
-	return nil
+	return r.employees[id], nil
 }
 
 func (r *employeeRepository) DeleteEmployee(ctx context.Context, employeeID staffing.EmployeeID) error {

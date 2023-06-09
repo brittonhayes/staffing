@@ -8,7 +8,7 @@ import (
 var ErrEmployeeNotFound = errors.New("employee not found")
 
 type EmployeeRepository interface {
-	CreateEmployee(ctx context.Context, name string) error
+	CreateEmployee(ctx context.Context, name string) (*Employee, error)
 	DeleteEmployee(ctx context.Context, employeeID EmployeeID) error
 
 	AssignProject(ctx context.Context, projectID ProjectID, employeeID EmployeeID) error
@@ -23,8 +23,8 @@ type EmployeeRepository interface {
 type EmployeeID string
 
 type Employee struct {
-	ID                 EmployeeID
-	Name               string
-	AssignedProject    ProjectID
-	AssignedDepartment DepartmentID
+	ID                 EmployeeID   `json:"id"`
+	Name               string       `json:"name"`
+	AssignedProject    ProjectID    `json:"assigned_project"`
+	AssignedDepartment DepartmentID `json:"assigned_department"`
 }

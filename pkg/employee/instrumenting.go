@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/brittonhayes/staffing"
 	"github.com/brittonhayes/staffing/proto/pb"
 	"github.com/go-kit/kit/metrics"
 )
@@ -23,7 +24,7 @@ func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram,
 	}
 }
 
-func (s *instrumentingService) CreateEmployee(ctx context.Context, command *pb.EmployeeCreateCommand) error {
+func (s *instrumentingService) CreateEmployee(ctx context.Context, command *pb.EmployeeCreateCommand) (*staffing.Employee, error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "CreateEmployee").Add(1)
 		s.requestLatency.With("method", "CreateEmployee").Observe(time.Since(begin).Seconds())
@@ -39,4 +40,22 @@ func (s *instrumentingService) DeleteEmployee(ctx context.Context, command *pb.E
 	}(time.Now())
 
 	return s.next.DeleteEmployee(ctx, command)
+}
+
+func (s *instrumentingService) AssignProject(ctx context.Context, command *pb.EmployeeAssignProjectCommand) error {
+	defer func(begin time.Time) {
+		s.requestCount.With("method", "EmployeeAssignProject").Add(1)
+		s.requestLatency.With("method", "EmployeeAssignProject").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+
+	return s.next.AssignProject(ctx, command)
+}
+
+func (s *instrumentingService) UnassignProject(ctx context.Context, command *pb.EmployeeUnassignProjectCommand) error {
+	defer func(begin time.Time) {
+		s.requestCount.With("method", "EmployeeUnassignProject").Add(1)
+		s.requestLatency.With("method", "EmployeeUnassignProject").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+
+	return s.next.UnassignProject(ctx, command)
 }
