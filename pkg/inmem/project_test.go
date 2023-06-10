@@ -15,14 +15,14 @@ func Test_NewProjectRepository(t *testing.T) {
 
 func Test_ProjectRepository_CreateProject(t *testing.T) {
 	repo := NewProjectRepository()
-	err := repo.CreateProject(context.Background(), marketing.Name)
+	_, err := repo.CreateProject(context.Background(), marketing.Name)
 
 	assert.NoError(t, err)
 }
 
-func Test_ProjectRepository_DeleteProject(t *testing.T) {
+func Test_ProjectRepository_CancelProject(t *testing.T) {
 	repo := NewProjectRepository()
-	err := repo.DeleteProject(context.Background(), marketing.ID)
+	_, err := repo.CancelProject(context.Background(), marketing.ID)
 
 	assert.NoError(t, err)
 }

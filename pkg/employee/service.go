@@ -18,6 +18,7 @@ type Service interface {
 	DeleteEmployee(ctx context.Context, command *pb.EmployeeDeleteCommand) error
 	AssignProject(ctx context.Context, command *pb.EmployeeAssignProjectCommand) error
 	UnassignProject(ctx context.Context, command *pb.EmployeeUnassignProjectCommand) error
+	InsertFeedback(ctx context.Context, command *pb.EmployeeInsertFeedbackCommand) error
 }
 
 type service struct {
@@ -50,7 +51,7 @@ func (s *service) DeleteEmployee(ctx context.Context, command *pb.EmployeeDelete
 
 func (s *service) AssignProject(ctx context.Context, command *pb.EmployeeAssignProjectCommand) error {
 
-	err := s.employees.AssignProject(ctx, staffing.ProjectID(command.ProjectId), staffing.EmployeeID(command.Id))
+	err := s.employees.AssignProject(ctx, staffing.EmployeeID(command.Id), staffing.ProjectID(command.ProjectId))
 	if err != nil {
 		return err
 	}
@@ -61,6 +62,23 @@ func (s *service) AssignProject(ctx context.Context, command *pb.EmployeeAssignP
 func (s *service) UnassignProject(ctx context.Context, command *pb.EmployeeUnassignProjectCommand) error {
 
 	err := s.employees.UnassignProject(ctx, staffing.EmployeeID(command.Id))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) InsertFeedback(ctx context.Context, command *pb.EmployeeInsertFeedbackCommand) error {
+
+	feedback := staffing.NewFeedback(
+		staffing.EmployeeID(command.Feedback.EmployeeId),
+		command.Feedback.FeedbackType,
+		command.Feedback.ItemId,
+		command.Feedback.Timestamp.AsTime(),
+	)
+
+	err := s.employees.InsertFeedback(ctx, feedback)
 	if err != nil {
 		return err
 	}

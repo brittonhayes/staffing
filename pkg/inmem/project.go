@@ -29,7 +29,7 @@ func (r *projectRepository) Close() error {
 	return nil
 }
 
-func (r *projectRepository) CreateProject(ctx context.Context, name string) error {
+func (r *projectRepository) CreateProject(ctx context.Context, name string) (*staffing.Project, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -39,18 +39,18 @@ func (r *projectRepository) CreateProject(ctx context.Context, name string) erro
 		Name: name,
 	}
 
-	return nil
+	return r.projects[id], nil
 }
 
-func (r *projectRepository) DeleteProject(ctx context.Context, projectID staffing.ProjectID) error {
+func (r *projectRepository) CancelProject(ctx context.Context, projectID staffing.ProjectID) (*staffing.Project, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	if r.projects[projectID] == nil {
-		return staffing.ErrProjectNotFound
+		return nil, staffing.ErrProjectNotFound
 	}
 
 	r.projects[projectID] = nil
 
-	return nil
+	return &staffing.Project{ID: projectID}, nil
 }

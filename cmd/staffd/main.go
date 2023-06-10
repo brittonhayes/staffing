@@ -17,8 +17,6 @@ import (
 	"github.com/brittonhayes/staffing"
 	"github.com/brittonhayes/staffing/pkg/department"
 	"github.com/brittonhayes/staffing/pkg/employee"
-	"github.com/brittonhayes/staffing/pkg/inmem"
-	"github.com/brittonhayes/staffing/pkg/kv"
 	"github.com/brittonhayes/staffing/pkg/project"
 	"github.com/brittonhayes/staffing/pkg/server"
 	"github.com/brittonhayes/staffing/pkg/sqlite"
@@ -28,7 +26,7 @@ import (
 
 func main() {
 	var (
-		storage     = flag.String("storage", "inmemory", "select storage type from inmemory,kv,sqlite (default inmemory)")
+		storage     = flag.String("storage", "inmemory", "select storage type from inmemory,sqlite (default inmemory)")
 		debug       = flag.Bool("debug", false, "enable debug logging (default false)")
 		trace       = flag.Bool("trace", false, "enable tracing (default false)")
 		httpAddress = flag.String("address", ":8080", "HTTP address port (default :8080)")
@@ -46,22 +44,24 @@ func main() {
 
 	switch *storage {
 	case "inmemory":
-		logger.Debug("Using in-memory repositories", nil)
-		projects = inmem.NewProjectRepository()
-		departments = inmem.NewDepartmentRepository()
-		employees = inmem.NewEmployeeRepository()
-		break
-	case "kv":
-		projects = kv.NewProjectRepository("projects.db")
+		logger.Debug("Using in-memory storage", nil)
+		projects = sqlite.NewProjectRepository("file::memory:?cache=shared")
 		defer projects.Close()
 
-		departments = kv.NewDepartmentRepository("departments.db")
+		departments = sqlite.NewDepartmentRepository("file::memory:?cache=shared")
 		defer departments.Close()
 
-		employees = kv.NewEmployeeRepository("employees.db")
+		employees = sqlite.NewEmployeeRepository("file::memory:?cache=shared")
 		defer employees.Close()
 	case "sqlite":
-		employees = sqlite.NewEmployeeRepository()
+		logger.Debug("Using sqlite storage", nil)
+		projects = sqlite.NewProjectRepository("file:projects.db")
+		defer projects.Close()
+
+		departments = sqlite.NewDepartmentRepository("file:departments.db")
+		defer departments.Close()
+
+		employees = sqlite.NewEmployeeRepository("file:employees.db")
 		defer employees.Close()
 	}
 
@@ -158,7 +158,6 @@ func publishMessages(ctx context.Context, publisher message.Publisher) {
 		if err != nil {
 			panic(err)
 		}
-
 		if err := publisher.Publish(server.CreateProjectSubscribeTopic, message.NewMessage(watermill.NewUUID(), projectCmd)); err != nil {
 			panic(err)
 		}

@@ -47,7 +47,7 @@ func (r *employeeRepository) DeleteEmployee(ctx context.Context, employeeID staf
 	return nil
 }
 
-func (r *employeeRepository) AssignProject(ctx context.Context, projectID staffing.ProjectID, employeeID staffing.EmployeeID) error {
+func (r *employeeRepository) AssignProject(ctx context.Context, employeeID staffing.EmployeeID, projectID staffing.ProjectID) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -65,7 +65,7 @@ func (r *employeeRepository) UnassignProject(ctx context.Context, employeeID sta
 	return nil
 }
 
-func (r *employeeRepository) AssignDepartment(ctx context.Context, departmentID staffing.DepartmentID, employeeID staffing.EmployeeID) error {
+func (r *employeeRepository) AssignDepartment(ctx context.Context, employeeID staffing.EmployeeID, departmentID staffing.DepartmentID) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -80,5 +80,9 @@ func (r *employeeRepository) UnassignDepartment(ctx context.Context, employeeID 
 
 	r.employees[employeeID].AssignedDepartment = ""
 
+	return nil
+}
+
+func (r *employeeRepository) InsertFeedback(ctx context.Context, feedback *staffing.Feedback) error {
 	return nil
 }

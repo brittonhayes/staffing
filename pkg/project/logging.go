@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill"
+	"github.com/brittonhayes/staffing"
 	"github.com/brittonhayes/staffing/proto/pb"
 )
 
@@ -17,7 +18,7 @@ func NewLoggingService(logger watermill.LoggerAdapter, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) error {
+func (s *loggingService) CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) (*staffing.Project, error) {
 	s.logger.Info("CreateProject", watermill.LogFields{
 		"command": command,
 	})
@@ -25,10 +26,10 @@ func (s *loggingService) CreateProject(ctx context.Context, command *pb.ProjectC
 	return s.next.CreateProject(ctx, command)
 }
 
-func (s *loggingService) DeleteProject(ctx context.Context, command *pb.ProjectDeleteCommand) error {
-	s.logger.Info("DeleteProject", watermill.LogFields{
+func (s *loggingService) CancelProject(ctx context.Context, command *pb.ProjectCancelCommand) (*staffing.Project, error) {
+	s.logger.Info("CancelProject", watermill.LogFields{
 		"command": command,
 	})
 
-	return s.next.DeleteProject(ctx, command)
+	return s.next.CancelProject(ctx, command)
 }

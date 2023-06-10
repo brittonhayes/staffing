@@ -16,9 +16,9 @@ type employeeRepository struct {
 	db *bun.DB
 }
 
-func NewEmployeeRepository() staffing.EmployeeRepository {
+func NewEmployeeRepository(connection string) staffing.EmployeeRepository {
 
-	sqldb, err := sql.Open(sqliteshim.ShimName, "file::memory:?cache=shared")
+	sqldb, err := sql.Open(sqliteshim.ShimName, connection)
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +59,7 @@ func (r *employeeRepository) DeleteEmployee(ctx context.Context, employeeID staf
 	return nil
 }
 
-func (r *employeeRepository) AssignDepartment(ctx context.Context, departmentID staffing.DepartmentID, employeeID staffing.EmployeeID) error {
+func (r *employeeRepository) AssignDepartment(ctx context.Context, employeeID staffing.EmployeeID, departmentID staffing.DepartmentID) error {
 	return nil
 }
 
@@ -67,10 +67,14 @@ func (r *employeeRepository) UnassignDepartment(ctx context.Context, employeeID 
 	return nil
 }
 
-func (r *employeeRepository) AssignProject(ctx context.Context, projectID staffing.ProjectID, employeeID staffing.EmployeeID) error {
+func (r *employeeRepository) AssignProject(ctx context.Context, employeeID staffing.EmployeeID, projectID staffing.ProjectID) error {
 	return nil
 }
 
 func (r *employeeRepository) UnassignProject(ctx context.Context, employeeID staffing.EmployeeID) error {
+	return nil
+}
+
+func (r *employeeRepository) InsertFeedback(ctx context.Context, feedback *staffing.Feedback) error {
 	return nil
 }
