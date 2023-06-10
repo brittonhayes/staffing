@@ -59,3 +59,12 @@ func (s *instrumentingService) UnassignProject(ctx context.Context, command *pb.
 
 	return s.next.UnassignProject(ctx, command)
 }
+
+func (s *instrumentingService) InsertFeedback(ctx context.Context, command *pb.EmployeeInsertFeedbackCommand) error {
+	defer func(begin time.Time) {
+		s.requestCount.With("method", "EmployeeInsertFeedback").Add(1)
+		s.requestLatency.With("method", "EmployeeInsertFeedback").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+
+	return s.next.InsertFeedback(ctx, command)
+}

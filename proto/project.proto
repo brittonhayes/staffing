@@ -1,20 +1,40 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
+import "validate/validate.proto";
 
 package staffing.project.v1;
 
 option go_package = "./pb;pb";
 
 service Project {
-    rpc CreateProject(ProjectCreateCommand) returns (google.protobuf.Empty) {}
-    rpc DeleteProject(ProjectDeleteCommand) returns (google.protobuf.Empty) {}
+    rpc CreateProject(ProjectCreateCommand) returns (ProjectCreateResponse) {}
+    rpc CancelProject(ProjectCancelCommand) returns (ProjectCancelResponse) {}
+    rpc RenameProject(ProjectRenameCommand) returns (ProjectRenameResponse) {}
 }
 
 message ProjectCreateCommand {
+    string name = 1 [(validate.rules).string.min_len = 3]; 
+}
+
+message ProjectCreateResponse {
+    string id = 1;
     string name = 2;
 }
 
-message ProjectDeleteCommand {
-    string projectId = 1;
+message ProjectCancelCommand {
+    string id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message ProjectCancelResponse {
+    string id = 1;
+}
+
+message ProjectRenameCommand {
+    string name = 1 [(validate.rules).string.min_len = 3]; 
+}
+
+message ProjectRenameResponse {
+    string id = 1;
+    string name = 2;
 }

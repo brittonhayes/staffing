@@ -49,7 +49,7 @@ func (h *projectHttpHandler) createProjectHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	err = h.service.CreateProject(ctx, &request)
+	_, err = h.service.CreateProject(ctx, &request)
 	if err != nil {
 		encodeError(ctx, err, w)
 		return
@@ -78,7 +78,7 @@ func (h *projectPubsubHandler) createProject(msg *message.Message) ([]*message.M
 		return nil, err
 	}
 
-	err = h.service.CreateProject(context.Background(), &command)
+	_, err = h.service.CreateProject(context.Background(), &command)
 	if err != nil {
 		return nil, err
 	}

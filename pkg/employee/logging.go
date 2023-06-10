@@ -49,3 +49,11 @@ func (s *loggingService) UnassignProject(ctx context.Context, command *pb.Employ
 
 	return s.next.UnassignProject(ctx, command)
 }
+
+func (s *loggingService) InsertFeedback(ctx context.Context, command *pb.EmployeeInsertFeedbackCommand) error {
+	s.logger.Info("InsertFeedback", watermill.LogFields{
+		"command": command,
+	})
+
+	return s.next.InsertFeedback(ctx, command)
+}

@@ -8,8 +8,8 @@ import (
 var ErrProjectNotFound = errors.New("project not found")
 
 type ProjectRepository interface {
-	CreateProject(ctx context.Context, name string) error
-	DeleteProject(ctx context.Context, projectID ProjectID) error
+	CreateProject(ctx context.Context, name string) (*Project, error)
+	CancelProject(ctx context.Context, projectID ProjectID) (*Project, error)
 	Close() error
 }
 

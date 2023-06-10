@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "validate/validate.proto";
 
@@ -12,15 +13,18 @@ service Employee {
     rpc DeleteEmployee(EmployeeDeleteCommand) returns (google.protobuf.Empty);
     rpc AssignProject(EmployeeAssignProjectCommand) returns (google.protobuf.Empty);
     rpc UnassignProject(EmployeeUnassignProjectCommand) returns (google.protobuf.Empty);
+    rpc InsertFeedback(EmployeeInsertFeedbackCommand) returns (google.protobuf.Empty);
 }
 
 message EmployeeCreateCommand {
     string name = 1 [(validate.rules).string.min_len = 3]; 
+    repeated string labels = 2;
 }
 
 message EmployeeCreateResponse {
-   string id = 1;
-   string name = 2;
+    string id = 1;
+    string name = 2;
+    repeated string labels = 3;
 }
 
 message EmployeeDeleteCommand {
@@ -29,9 +33,21 @@ message EmployeeDeleteCommand {
 
 message EmployeeAssignProjectCommand {
     string id = 1; 
-    string projectId = 2;
+    string project_id = 2;
 }
 
 message EmployeeUnassignProjectCommand {
     string id = 1; 
 }
+
+message Feedback {
+    string feedback_type = 1;
+    string employee_id = 2;
+    string item_id = 3;
+    google.protobuf.Timestamp timestamp = 4;
+}
+
+message EmployeeInsertFeedbackCommand {
+    Feedback feedback = 1;
+}
+

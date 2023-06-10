@@ -16,5 +16,5 @@ message DepartmentCreateCommand {
 }
 
 message DepartmentDeleteCommand {
-    string departmentId = 1;
+    string department_id = 1;
 }

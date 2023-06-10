@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/brittonhayes/staffing"
 	"github.com/brittonhayes/staffing/proto/pb"
 	"github.com/go-kit/kit/metrics"
 )
@@ -23,7 +24,7 @@ func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram,
 	}
 }
 
-func (s *instrumentingService) CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) error {
+func (s *instrumentingService) CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) (*staffing.Project, error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "CreateProject").Add(1)
 		s.requestLatency.With("method", "CreateProject").Observe(time.Since(begin).Seconds())
@@ -32,11 +33,11 @@ func (s *instrumentingService) CreateProject(ctx context.Context, command *pb.Pr
 	return s.next.CreateProject(ctx, command)
 }
 
-func (s *instrumentingService) DeleteProject(ctx context.Context, command *pb.ProjectDeleteCommand) error {
+func (s *instrumentingService) CancelProject(ctx context.Context, command *pb.ProjectCancelCommand) (*staffing.Project, error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "DeleteProject").Add(1)
 		s.requestLatency.With("method", "DeleteProject").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.next.DeleteProject(ctx, command)
+	return s.next.CancelProject(ctx, command)
 }

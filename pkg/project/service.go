@@ -14,38 +14,40 @@ var ErrInvalidArgument = errors.New("invalid argument")
 
 // Service is the interface that provides project methods.
 type Service interface {
-	CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) error
-	DeleteProject(ctx context.Context, command *pb.ProjectDeleteCommand) error
+	CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) (*staffing.Project, error)
+	CancelProject(ctx context.Context, command *pb.ProjectCancelCommand) (*staffing.Project, error)
 }
 
 type service struct {
 	projects staffing.ProjectRepository
 }
 
-func (s *service) CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) error {
-	if command.Name == "" {
-		return ErrInvalidArgument
+func (s *service) CreateProject(ctx context.Context, command *pb.ProjectCreateCommand) (*staffing.Project, error) {
+
+	if err := command.ValidateAll(); err != nil {
+		return nil, err
 	}
 
-	err := s.projects.CreateProject(ctx, command.Name)
+	resp, err := s.projects.CreateProject(ctx, command.Name)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return resp, nil
 }
 
-func (s *service) DeleteProject(ctx context.Context, command *pb.ProjectDeleteCommand) error {
-	if command.ProjectId == "" {
-		return ErrInvalidArgument
+func (s *service) CancelProject(ctx context.Context, command *pb.ProjectCancelCommand) (*staffing.Project, error) {
+
+	if err := command.ValidateAll(); err != nil {
+		return nil, err
 	}
 
-	err := s.projects.DeleteProject(ctx, staffing.ProjectID(command.ProjectId))
+	resp, err := s.projects.CancelProject(ctx, staffing.ProjectID(command.Id))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return resp, nil
 }
 
 // NewService creates a project service with the necessary dependencies.
