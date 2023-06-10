@@ -20,6 +20,13 @@ const (
 	CreateEmployeeSubscribeTopic = "topic.create_employee"
 	// CreateEmployeePublishTopic is the topic for publishing a employee created event
 	CreateEmployeePublishTopic = "topic.employee_created"
+
+	// DeleteEmployeeHandlerName is the name of the handler for deleting a employee
+	DeleteEmployeeHandlerName = "delete_employee"
+	// DeleteEmployeeSubscribeTopic is the subscriber topic for deleting a employee
+	DeleteEmployeeSubscribeTopic = "topic.delete_employee"
+	// DeleteEmployeePublishTopic is the topic for publishing a employee deleted event
+	DeleteEmployeePublishTopic = "topic.employee_deleted"
 )
 
 type employeeHttpHandler struct {
@@ -90,7 +97,8 @@ type employeePubsubHandler struct {
 }
 
 func (h *employeePubsubHandler) addHandlers(router *message.Router, publisher message.Publisher, subscriber message.Subscriber) {
-	router.AddHandler(CreateEmployeeHandlerName, CreateEmployeeSubscribeTopic, subscriber, CreateProjectPublishTopic, publisher, h.createEmployee)
+	router.AddHandler(CreateEmployeeHandlerName, CreateEmployeeSubscribeTopic, subscriber, CreateEmployeePublishTopic, publisher, h.createEmployee)
+	router.AddHandler(DeleteEmployeeHandlerName, DeleteEmployeeSubscribeTopic, subscriber, DeleteEmployeePublishTopic, publisher, h.deleteEmployee)
 }
 
 func (h *employeePubsubHandler) createEmployee(msg *message.Message) ([]*message.Message, error) {
@@ -103,7 +111,35 @@ func (h *employeePubsubHandler) createEmployee(msg *message.Message) ([]*message
 		return nil, err
 	}
 
-	_, err = h.service.CreateEmployee(context.Background(), &command)
+	resp, err := h.service.CreateEmployee(context.Background(), &command)
+	if err != nil {
+		h.logger.Error("error", err, nil)
+		return nil, err
+	}
+
+	recommendationUser, err := p.Marshal(&pb.RecommendationCreateUserCommand{
+		UserId: string(resp.ID),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return []*message.Message{
+		recommendationUser,
+	}, nil
+}
+
+func (h *employeePubsubHandler) deleteEmployee(msg *message.Message) ([]*message.Message, error) {
+
+	var command pb.EmployeeDeleteCommand
+	p := protobuf.ProtobufMarshaler{}
+
+	err := p.Unmarshal(msg, &command)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.service.DeleteEmployee(context.Background(), &command)
 	if err != nil {
 		h.logger.Error("error", err, nil)
 		return nil, err

@@ -18,6 +18,7 @@ import (
 	"github.com/brittonhayes/staffing/pkg/department"
 	"github.com/brittonhayes/staffing/pkg/employee"
 	"github.com/brittonhayes/staffing/pkg/project"
+	"github.com/brittonhayes/staffing/pkg/recommend"
 	"github.com/brittonhayes/staffing/pkg/server"
 	"github.com/brittonhayes/staffing/pkg/sqlite"
 	"github.com/brittonhayes/staffing/proto/pb"
@@ -37,9 +38,10 @@ func main() {
 	logger := watermill.NewStdLogger(*debug, *trace)
 
 	var (
-		projects    staffing.ProjectRepository
-		departments staffing.DepartmentRepository
-		employees   staffing.EmployeeRepository
+		projects        staffing.ProjectRepository
+		departments     staffing.DepartmentRepository
+		employees       staffing.EmployeeRepository
+		recommendations staffing.RecommendationRepository
 	)
 
 	switch *storage {
@@ -118,11 +120,14 @@ func main() {
 		employeeSvc,
 	)
 
+	recommendationSvc := recommend.NewService(recommendations)
+	recommendationSvc = recommend.NewLoggingService(logger.With(watermill.LogFields{"service": "recommendation"}), recommendationSvc)
+
 	subscriber := gochannel.NewGoChannel(gochannel.Config{}, logger)
 	publisher := gochannel.NewGoChannel(gochannel.Config{}, logger)
 
 	httpServer := server.NewHTTPServer(projectSvc, departmentSvc, employeeSvc, *httpAddress, logger)
-	pubsubServer := server.NewPubSubServer(projectSvc, departmentSvc, employeeSvc, subscriber, publisher, logger)
+	pubsubServer := server.NewPubSubServer(projectSvc, departmentSvc, employeeSvc, recommendationSvc, publisher, subscriber, logger)
 
 	// Run servers in multiple goroutines
 	wg := new(sync.WaitGroup)
@@ -137,7 +142,7 @@ func main() {
 		wg.Done()
 	}()
 
-	// go publishMessages(ctx, subscriber)
+	go publishMessages(ctx, subscriber)
 	wg.Wait()
 }
 
@@ -145,24 +150,15 @@ func main() {
 func publishMessages(ctx context.Context, publisher message.Publisher) {
 
 	for {
-		projectCmd, err := proto.Marshal(&pb.ProjectCreateCommand{
+		employeeCmd, err := proto.Marshal(&pb.EmployeeCreateCommand{
 			Name: gofakeit.Name(),
 		})
 		if err != nil {
 			panic(err)
 		}
 
-		departmentCmd, err := proto.Marshal(&pb.DepartmentCreateCommand{
-			Name: gofakeit.Verb(),
-		})
+		err = publisher.Publish(server.CreateEmployeeSubscribeTopic, message.NewMessage(watermill.NewUUID(), employeeCmd))
 		if err != nil {
-			panic(err)
-		}
-		if err := publisher.Publish(server.CreateProjectSubscribeTopic, message.NewMessage(watermill.NewUUID(), projectCmd)); err != nil {
-			panic(err)
-		}
-
-		if err := publisher.Publish(server.CreateDepartmentSubscribeTopic, message.NewMessage(watermill.NewUUID(), departmentCmd)); err != nil {
 			panic(err)
 		}
 

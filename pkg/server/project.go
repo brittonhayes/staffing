@@ -33,6 +33,7 @@ func (h *projectHttpHandler) router() chi.Router {
 
 	r.Route("/", func(r chi.Router) {
 		r.Post("/", h.createProjectHandler)
+		r.Delete("/", h.cancelProjectCommand)
 	})
 
 	return r
@@ -56,6 +57,26 @@ func (h *projectHttpHandler) createProjectHandler(w http.ResponseWriter, r *http
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *projectHttpHandler) cancelProjectCommand(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	var request pb.ProjectCancelCommand
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		encodeError(ctx, err, w)
+		return
+	}
+
+	_, err = h.service.CancelProject(ctx, &request)
+	if err != nil {
+		encodeError(ctx, err, w)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 type projectPubsubHandler struct {

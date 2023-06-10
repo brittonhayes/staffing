@@ -11,24 +11,27 @@ import (
 	"github.com/brittonhayes/staffing/pkg/department"
 	"github.com/brittonhayes/staffing/pkg/employee"
 	"github.com/brittonhayes/staffing/pkg/project"
+	"github.com/brittonhayes/staffing/pkg/recommend"
 )
 
 type pubsubServer struct {
-	Project    project.Service
-	Department department.Service
-	Employee   employee.Service
+	Project        project.Service
+	Department     department.Service
+	Employee       employee.Service
+	Recommendation recommend.Service
 
 	Logger watermill.LoggerAdapter
 
 	router *message.Router
 }
 
-func NewPubSubServer(projectService project.Service, departmentService department.Service, employeeService employee.Service, publisher message.Publisher, subscriber message.Subscriber, logger watermill.LoggerAdapter) Server {
+func NewPubSubServer(projectService project.Service, departmentService department.Service, employeeService employee.Service, recommendationService recommend.Service, publisher message.Publisher, subscriber message.Subscriber, logger watermill.LoggerAdapter) Server {
 	server := &pubsubServer{
-		Project:    projectService,
-		Department: departmentService,
-		Employee:   employeeService,
-		Logger:     logger,
+		Project:        projectService,
+		Department:     departmentService,
+		Employee:       employeeService,
+		Recommendation: recommendationService,
+		Logger:         logger,
 	}
 
 	router, err := message.NewRouter(message.RouterConfig{}, logger)
@@ -60,6 +63,12 @@ func NewPubSubServer(projectService project.Service, departmentService departmen
 		logger:  logger,
 	}
 	employeeHandler.addHandlers(router, publisher, subscriber)
+
+	recommendationHandler := &recommendationPubsubHandler{
+		service: recommendationService,
+		logger:  logger,
+	}
+	recommendationHandler.addHandlers(router, publisher, subscriber)
 
 	server.router = router
 
