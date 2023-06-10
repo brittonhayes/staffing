@@ -16,13 +16,17 @@ type departmentRepository struct {
 	db *bun.DB
 }
 
-func NewDepartmentRepository(connection string) staffing.DepartmentRepository {
+func NewDepartmentRepository(connection string, inmem bool) staffing.DepartmentRepository {
 
 	sqldb, err := sql.Open(sqliteshim.ShimName, connection)
 	if err != nil {
 		panic(err)
 	}
-	sqldb.SetMaxOpenConns(1)
+	if inmem {
+		sqldb.SetMaxOpenConns(1)
+		sqldb.SetMaxIdleConns(1000)
+		sqldb.SetConnMaxLifetime(0)
+	}
 
 	db := bun.NewDB(sqldb, sqlitedialect.New())
 

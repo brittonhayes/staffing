@@ -16,12 +16,16 @@ type projectRepository struct {
 	db *bun.DB
 }
 
-func NewProjectRepository(connection string) staffing.ProjectRepository {
+func NewProjectRepository(connection string, inmem bool) staffing.ProjectRepository {
 	sqldb, err := sql.Open(sqliteshim.ShimName, connection)
 	if err != nil {
 		panic(err)
 	}
-	sqldb.SetMaxOpenConns(1)
+	if inmem {
+		sqldb.SetMaxOpenConns(1)
+		sqldb.SetMaxIdleConns(1000)
+		sqldb.SetConnMaxLifetime(0)
+	}
 
 	db := bun.NewDB(sqldb, sqlitedialect.New())
 

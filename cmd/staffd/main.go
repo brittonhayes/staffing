@@ -45,23 +45,23 @@ func main() {
 	switch *storage {
 	case "inmemory":
 		logger.Debug("Using in-memory storage", nil)
-		projects = sqlite.NewProjectRepository("file::memory:?cache=shared")
+		projects = sqlite.NewProjectRepository("file::memory:?cache=shared", true)
 		defer projects.Close()
 
-		departments = sqlite.NewDepartmentRepository("file::memory:?cache=shared")
+		departments = sqlite.NewDepartmentRepository("file::memory:?cache=shared", true)
 		defer departments.Close()
 
-		employees = sqlite.NewEmployeeRepository("file::memory:?cache=shared")
+		employees = sqlite.NewEmployeeRepository("file::memory:?cache=shared", true)
 		defer employees.Close()
 	case "sqlite":
 		logger.Debug("Using sqlite storage", nil)
-		projects = sqlite.NewProjectRepository("file:projects.db")
+		projects = sqlite.NewProjectRepository("file:projects.db", false)
 		defer projects.Close()
 
-		departments = sqlite.NewDepartmentRepository("file:departments.db")
+		departments = sqlite.NewDepartmentRepository("file:departments.db", false)
 		defer departments.Close()
 
-		employees = sqlite.NewEmployeeRepository("file:employees.db")
+		employees = sqlite.NewEmployeeRepository("file:employees.db", false)
 		defer employees.Close()
 	}
 
