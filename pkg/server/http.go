@@ -23,6 +23,7 @@ import (
 type httpServer struct {
 	Project    project.Service
 	Department department.Service
+	Employee   employee.Service
 
 	Logger watermill.LoggerAdapter
 
@@ -35,6 +36,7 @@ func NewHTTPServer(projectService project.Service, departmentService department.
 	s := &httpServer{
 		Project:    projectService,
 		Department: departmentService,
+		Employee:   employeeService,
 		Logger:     logger,
 		address:    address,
 	}

@@ -55,6 +55,9 @@ func main() {
 
 		employees = sqlite.NewEmployeeRepository("file::memory:?cache=shared", true)
 		defer employees.Close()
+
+		recommendations = sqlite.NewRecommendationRepository("file::memory:?cache=shared", true)
+		defer recommendations.Close()
 	case "sqlite":
 		logger.Debug("Using sqlite storage", nil)
 		projects = sqlite.NewProjectRepository("file:projects.db", false)
@@ -65,6 +68,9 @@ func main() {
 
 		employees = sqlite.NewEmployeeRepository("file:employees.db", false)
 		defer employees.Close()
+
+		recommendations = sqlite.NewRecommendationRepository("file:recommendations.db", false)
+		defer recommendations.Close()
 	}
 
 	fieldKeys := []string{"method"}
@@ -122,12 +128,25 @@ func main() {
 
 	recommendationSvc := recommend.NewService(recommendations)
 	recommendationSvc = recommend.NewLoggingService(logger.With(watermill.LogFields{"service": "recommendation"}), recommendationSvc)
+	recommendationSvc = recommend.NewInstrumentingService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "recommendation_service",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "recommendation_service",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys),
+		recommendationSvc,
+	)
 
-	subscriber := gochannel.NewGoChannel(gochannel.Config{}, logger)
-	publisher := gochannel.NewGoChannel(gochannel.Config{}, logger)
+	pubsub := gochannel.NewGoChannel(gochannel.Config{}, logger)
 
 	httpServer := server.NewHTTPServer(projectSvc, departmentSvc, employeeSvc, *httpAddress, logger)
-	pubsubServer := server.NewPubSubServer(projectSvc, departmentSvc, employeeSvc, recommendationSvc, publisher, subscriber, logger)
+	pubsubServer := server.NewPubSubServer(projectSvc, departmentSvc, employeeSvc, recommendationSvc, pubsub, pubsub, logger)
 
 	// Run servers in multiple goroutines
 	wg := new(sync.WaitGroup)
@@ -142,16 +161,17 @@ func main() {
 		wg.Done()
 	}()
 
-	go publishMessages(ctx, subscriber)
+	go publishMessages(ctx, pubsub, 3)
 	wg.Wait()
 }
 
 // publish messages simulates a client publishing messages to the server
-func publishMessages(ctx context.Context, publisher message.Publisher) {
+func publishMessages(ctx context.Context, publisher message.Publisher, count int) {
 
-	for {
+	for i := 0; i <= count; i++ {
 		employeeCmd, err := proto.Marshal(&pb.EmployeeCreateCommand{
-			Name: gofakeit.Name(),
+			Name:   gofakeit.Name(),
+			Labels: []string{"language:go"},
 		})
 		if err != nil {
 			panic(err)
@@ -162,6 +182,7 @@ func publishMessages(ctx context.Context, publisher message.Publisher) {
 			panic(err)
 		}
 
-		time.Sleep(5 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
+
 }

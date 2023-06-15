@@ -8,12 +8,12 @@ import (
 	"github.com/brittonhayes/staffing/internal/protobuf"
 	"github.com/brittonhayes/staffing/pkg/recommend"
 	"github.com/brittonhayes/staffing/proto/pb"
+	"github.com/pkg/errors"
 )
 
 const (
 	CreateUserHandlerName    = "create_user"
 	CreateUserSubscribeTopic = "topic.create_recommendation_user"
-	CreateUserPublishTopic   = "topic.recommendation_user_created"
 )
 
 type recommendationPubsubHandler struct {
@@ -23,26 +23,28 @@ type recommendationPubsubHandler struct {
 }
 
 func (h *recommendationPubsubHandler) addHandlers(router *message.Router, publisher message.Publisher, subscriber message.Subscriber) {
-	router.AddHandler(CreateUserHandlerName, CreateEmployeePublishTopic, subscriber, CreateUserPublishTopic, publisher, h.createRecommendation)
+	router.AddNoPublisherHandler(CreateUserHandlerName, CreateEmployeePublishTopic, subscriber, h.createUser)
 }
 
-func (h *recommendationPubsubHandler) createRecommendation(msg *message.Message) ([]*message.Message, error) {
+func (h *recommendationPubsubHandler) createUser(msg *message.Message) error {
 
-	var command pb.RecommendationCreateUserCommand
+	var command pb.EmployeeCreateCommand
 	p := protobuf.ProtobufMarshaler{}
 
 	err := p.Unmarshal(msg, &command)
 	if err != nil {
-		return nil, err
+		return errors.Wrap(err, "failed to unmarshal recommendation create user command")
 	}
 
-	err = h.service.CreateUser(context.Background(), &command)
+	createUser := &pb.RecommendationCreateUserCommand{
+		UserId: command.GetName(),
+		Labels: command.GetLabels(),
+	}
+
+	err = h.service.CreateUser(context.Background(), createUser)
 	if err != nil {
-		h.logger.Error("error", err, nil)
-		return nil, err
+		return errors.Wrap(err, "failed to create user")
 	}
 
-	h.logger.Debug("CreateUser command received", nil)
-
-	return nil, nil
+	return nil
 }

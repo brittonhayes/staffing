@@ -111,22 +111,12 @@ func (h *employeePubsubHandler) createEmployee(msg *message.Message) ([]*message
 		return nil, err
 	}
 
-	resp, err := h.service.CreateEmployee(context.Background(), &command)
-	if err != nil {
-		h.logger.Error("error", err, nil)
-		return nil, err
-	}
-
-	recommendationUser, err := p.Marshal(&pb.RecommendationCreateUserCommand{
-		UserId: string(resp.ID),
-	})
+	_, err = h.service.CreateEmployee(context.Background(), &command)
 	if err != nil {
 		return nil, err
 	}
 
-	return []*message.Message{
-		recommendationUser,
-	}, nil
+	return []*message.Message{msg}, nil
 }
 
 func (h *employeePubsubHandler) deleteEmployee(msg *message.Message) ([]*message.Message, error) {
@@ -141,7 +131,6 @@ func (h *employeePubsubHandler) deleteEmployee(msg *message.Message) ([]*message
 
 	err = h.service.DeleteEmployee(context.Background(), &command)
 	if err != nil {
-		h.logger.Error("error", err, nil)
 		return nil, err
 	}
 

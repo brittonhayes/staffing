@@ -3,6 +3,8 @@ package staffing
 import (
 	"context"
 	"errors"
+
+	"github.com/uptrace/bun"
 )
 
 var ErrRecommendationNotFound = errors.New("recommendation not found")
@@ -15,6 +17,8 @@ type RecommendationRepository interface {
 type RecommendationID string
 
 type Recommendation struct {
-	ID   RecommendationID
+	bun.BaseModel `bun:"table:recommendations"`
+
+	ID   RecommendationID `json:"id" bun:",pk"`
 	Name string
 }

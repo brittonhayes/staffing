@@ -39,12 +39,17 @@ func NewPubSubServer(projectService project.Service, departmentService departmen
 		panic(err)
 	}
 
+	router.AddMiddleware(
+		middleware.NewThrottle(1, time.Second*3).Middleware,
+		middleware.Retry{
+			MaxRetries:      3,
+			InitialInterval: time.Millisecond * 100,
+			Logger:          server.Logger,
+		}.Middleware,
+		middleware.Recoverer,
+	)
+
 	router.AddPlugin(plugin.SignalsHandler)
-	router.AddMiddleware(middleware.Recoverer, middleware.Retry{
-		MaxRetries:      3,
-		InitialInterval: time.Millisecond * 100,
-		Logger:          server.Logger,
-	}.Middleware)
 
 	projectHandler := &projectPubsubHandler{
 		service: projectService,

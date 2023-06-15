@@ -2,10 +2,10 @@ package recommend
 
 import (
 	"context"
-	"errors"
 
 	"github.com/brittonhayes/staffing"
 	"github.com/brittonhayes/staffing/proto/pb"
+	"github.com/pkg/errors"
 )
 
 var _ Service = (*service)(nil)
@@ -29,7 +29,7 @@ func (s *service) CreateUser(ctx context.Context, command *pb.RecommendationCrea
 
 	err := s.recommendations.CreateUser(ctx, command.UserId)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "service failed to create user")
 	}
 
 	return nil
