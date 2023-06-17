@@ -27,6 +27,12 @@ services:
     ports:
       - 6379:6379
 
+  rabbitmq:
+    image: rabbitmq:3.7
+    restart: unless-stopped
+    ports:
+      - 5672:5672
+
   postgres:
    image: postgres:10.0
    container_name: "staffing-postgres"
@@ -61,7 +67,7 @@ services:
       - ./config.toml:/etc/gorse/config.toml
     depends_on:
       - redis
-      - mysql
+      - postgres 
 
 
 volumes:

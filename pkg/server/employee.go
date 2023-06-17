@@ -104,19 +104,27 @@ func (h *employeePubsubHandler) addHandlers(router *message.Router, publisher me
 func (h *employeePubsubHandler) createEmployee(msg *message.Message) ([]*message.Message, error) {
 
 	var command pb.EmployeeCreateCommand
-	p := protobuf.ProtobufMarshaler{}
+	proto := protobuf.ProtobufMarshaler{}
 
-	err := p.Unmarshal(msg, &command)
+	err := proto.Unmarshal(msg, &command)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = h.service.CreateEmployee(context.Background(), &command)
+	resp, err := h.service.CreateEmployee(context.Background(), &command)
 	if err != nil {
 		return nil, err
 	}
 
-	return []*message.Message{msg}, nil
+	payload, err := json.Marshal(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return []*message.Message{
+		message.NewMessage(watermill.NewUUID(), payload),
+	}, nil
+
 }
 
 func (h *employeePubsubHandler) deleteEmployee(msg *message.Message) ([]*message.Message, error) {

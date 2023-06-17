@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.2.0
+	github.com/ThreeDotsLabs/watermill-amqp/v2 v2.1.0
 	github.com/brianvoe/gofakeit/v6 v6.20.1
 	github.com/envoyproxy/protoc-gen-validate v1.0.1
 	github.com/go-chi/chi v1.5.4
@@ -35,6 +36,7 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.39.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
+	github.com/rabbitmq/amqp091-go v1.2.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect

@@ -11,8 +11,8 @@ import (
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 
 	"github.com/ThreeDotsLabs/watermill"
+	"github.com/ThreeDotsLabs/watermill-amqp/v2/pkg/amqp"
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/brittonhayes/staffing"
 	"github.com/brittonhayes/staffing/pkg/department"
@@ -31,9 +31,11 @@ func main() {
 		debug       = flag.Bool("debug", false, "enable debug logging (default false)")
 		trace       = flag.Bool("trace", false, "enable tracing (default false)")
 		httpAddress = flag.String("address", ":8080", "HTTP address port (default :8080)")
+		amqpURI     = flag.String("amqp", "amqp://guest:guest@localhost:5672/", "RabbitMQ PubSub URI (default amqp://guest:guest@rabbitmq:5672/)")
 
 		ctx = context.Background()
 	)
+
 	flag.Parse()
 	logger := watermill.NewStdLogger(*debug, *trace)
 
@@ -58,6 +60,7 @@ func main() {
 
 		recommendations = sqlite.NewRecommendationRepository("file::memory:?cache=shared", true)
 		defer recommendations.Close()
+
 	case "sqlite":
 		logger.Debug("Using sqlite storage", nil)
 		projects = sqlite.NewProjectRepository("file:projects.db", false)
@@ -143,10 +146,22 @@ func main() {
 		recommendationSvc,
 	)
 
-	pubsub := gochannel.NewGoChannel(gochannel.Config{}, logger)
+	// pubsub := gochannel.NewGoChannel(gochannel.Config{}, logger)
+	amqpPubConfig := amqp.NewDurablePubSubConfig(*amqpURI, nil)
+	amqpSubConfig := amqp.NewDurableQueueConfig(*amqpURI)
+
+	publisher, err := amqp.NewPublisher(amqpPubConfig, logger)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	subscriber, err := amqp.NewSubscriber(amqpSubConfig, logger)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	httpServer := server.NewHTTPServer(projectSvc, departmentSvc, employeeSvc, *httpAddress, logger)
-	pubsubServer := server.NewPubSubServer(projectSvc, departmentSvc, employeeSvc, recommendationSvc, pubsub, pubsub, logger)
+	pubsubServer := server.NewPubSubServer(projectSvc, departmentSvc, employeeSvc, recommendationSvc, publisher, subscriber, logger)
 
 	// Run servers in multiple goroutines
 	wg := new(sync.WaitGroup)
@@ -161,7 +176,7 @@ func main() {
 		wg.Done()
 	}()
 
-	go publishMessages(ctx, pubsub, 3)
+	go publishMessages(ctx, publisher, 3)
 	wg.Wait()
 }
 

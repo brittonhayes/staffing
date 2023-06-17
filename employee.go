@@ -29,7 +29,7 @@ type EmployeeRepository interface {
 type EmployeeID string
 
 type Employee struct {
-	bun.BaseModel `bun:"table:employees,alias:e"`
+	bun.BaseModel `bun:"table:employees"`
 
 	ID                 EmployeeID   `json:"id" bun:",pk"`
 	Name               string       `json:"name"`
