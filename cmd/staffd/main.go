@@ -192,7 +192,7 @@ func publishMessages(ctx context.Context, publisher message.Publisher, count int
 			panic(err)
 		}
 
-		err = publisher.Publish(server.CreateEmployeeSubscribeTopic, message.NewMessage(watermill.NewUUID(), employeeCmd))
+		err = publisher.Publish(server.CreateEmployeeTopic, message.NewMessage(watermill.NewUUID(), employeeCmd))
 		if err != nil {
 			panic(err)
 		}

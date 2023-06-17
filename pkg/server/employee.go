@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -16,17 +17,17 @@ import (
 const (
 	// CreateEmployeeHandlerName is the name of the handler for creating a employee
 	CreateEmployeeHandlerName = "create_employee"
-	// CreateEmployeeSubscribeTopic is the subscriber topic for creating a employee
-	CreateEmployeeSubscribeTopic = "topic.create_employee"
-	// CreateEmployeePublishTopic is the topic for publishing a employee created event
-	CreateEmployeePublishTopic = "topic.employee_created"
+	// CreateEmployeeTopic is the subscriber topic for creating a employee
+	CreateEmployeeTopic = "topic.create_employee"
+	// EmployeeCreatedTopic is the topic for publishing a employee created event
+	EmployeeCreatedTopic = "topic.employee_created"
 
 	// DeleteEmployeeHandlerName is the name of the handler for deleting a employee
 	DeleteEmployeeHandlerName = "delete_employee"
-	// DeleteEmployeeSubscribeTopic is the subscriber topic for deleting a employee
-	DeleteEmployeeSubscribeTopic = "topic.delete_employee"
-	// DeleteEmployeePublishTopic is the topic for publishing a employee deleted event
-	DeleteEmployeePublishTopic = "topic.employee_deleted"
+	// DeleteEmployeeTopic is the subscriber topic for deleting a employee
+	DeleteEmployeeTopic = "topic.delete_employee"
+	// EmployeeDeletedTopic is the topic for publishing a employee deleted event
+	EmployeeDeletedTopic = "topic.employee_deleted"
 )
 
 type employeeHttpHandler struct {
@@ -97,8 +98,8 @@ type employeePubsubHandler struct {
 }
 
 func (h *employeePubsubHandler) addHandlers(router *message.Router, publisher message.Publisher, subscriber message.Subscriber) {
-	router.AddHandler(CreateEmployeeHandlerName, CreateEmployeeSubscribeTopic, subscriber, CreateEmployeePublishTopic, publisher, h.createEmployee)
-	router.AddHandler(DeleteEmployeeHandlerName, DeleteEmployeeSubscribeTopic, subscriber, DeleteEmployeePublishTopic, publisher, h.deleteEmployee)
+	router.AddHandler(CreateEmployeeHandlerName, CreateEmployeeTopic, subscriber, EmployeeCreatedTopic, publisher, h.createEmployee)
+	router.AddHandler(DeleteEmployeeHandlerName, DeleteEmployeeTopic, subscriber, EmployeeDeletedTopic, publisher, h.deleteEmployee)
 }
 
 func (h *employeePubsubHandler) createEmployee(msg *message.Message) ([]*message.Message, error) {
@@ -120,6 +121,10 @@ func (h *employeePubsubHandler) createEmployee(msg *message.Message) ([]*message
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("employee response before publish: %v", resp)
+	log.Printf("employee response type before publish: %T", resp)
+	log.Printf("payload before publish: %v", payload)
 
 	return []*message.Message{
 		message.NewMessage(watermill.NewUUID(), payload),

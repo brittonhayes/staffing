@@ -22,7 +22,7 @@ type recommendationPubsubHandler struct {
 }
 
 func (h *recommendationPubsubHandler) addHandlers(router *message.Router, publisher message.Publisher, subscriber message.Subscriber) {
-	router.AddNoPublisherHandler(CreateUserHandlerName, CreateEmployeePublishTopic, subscriber, h.createUser)
+	router.AddNoPublisherHandler(CreateUserHandlerName, EmployeeCreatedTopic, subscriber, h.createUser)
 }
 
 func (h *recommendationPubsubHandler) createUser(msg *message.Message) error {
