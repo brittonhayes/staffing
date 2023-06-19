@@ -23,9 +23,17 @@ type service struct {
 
 func (s *service) CreateUser(ctx context.Context, command *pb.RecommendationCreateUserCommand) error {
 
-	err := s.recommendations.CreateUser(ctx, command.GetUserId())
+	if err := command.ValidateAll(); err != nil {
+		return err
+	}
+
+	err := s.recommendations.CreateUser(ctx, &staffing.User{
+		UserId: command.UserId,
+		Labels: command.Labels,
+	})
+
 	if err != nil {
-		return errors.Wrap(err, "service failed to create user")
+		return err
 	}
 
 	return nil

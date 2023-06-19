@@ -1,13 +1,13 @@
 version: '3.9'
 services:
-  staffd:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: "staffing-staffd"
-    restart: unless-stopped
-    ports:
-      - 8080:8080
+  # staffd:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: "staffing-staffd"
+  #   restart: unless-stopped
+  #   ports:
+  #     - 8080:8080
 
   prometheus:
     image: prom/prometheus:latest

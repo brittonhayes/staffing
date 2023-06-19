@@ -15,14 +15,16 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/brittonhayes/staffing"
+	"github.com/brittonhayes/staffing/internal/protobuf"
 	"github.com/brittonhayes/staffing/pkg/department"
 	"github.com/brittonhayes/staffing/pkg/employee"
 	"github.com/brittonhayes/staffing/pkg/project"
 	"github.com/brittonhayes/staffing/pkg/recommend"
 	"github.com/brittonhayes/staffing/pkg/server"
 	"github.com/brittonhayes/staffing/pkg/sqlite"
+
+	"github.com/brittonhayes/staffing/pkg/gorse"
 	"github.com/brittonhayes/staffing/proto/pb"
-	"google.golang.org/protobuf/proto"
 )
 
 func main() {
@@ -58,7 +60,7 @@ func main() {
 		employees = sqlite.NewEmployeeRepository("file::memory:?cache=shared", true)
 		defer employees.Close()
 
-		recommendations = sqlite.NewRecommendationRepository("file::memory:?cache=shared", true)
+		recommendations = gorse.NewRecommendationRepository("http://127.0.0.1:8088", "")
 		defer recommendations.Close()
 
 	case "sqlite":
@@ -72,7 +74,7 @@ func main() {
 		employees = sqlite.NewEmployeeRepository("file:employees.db", false)
 		defer employees.Close()
 
-		recommendations = sqlite.NewRecommendationRepository("file:recommendations.db", false)
+		recommendations = gorse.NewRecommendationRepository("http://127.0.0.1:8088", "")
 		defer recommendations.Close()
 	}
 
@@ -182,8 +184,12 @@ func main() {
 // publish messages simulates a client publishing messages to the server
 func publishMessages(ctx context.Context, publisher message.Publisher, count int) {
 
+	time.Sleep(time.Second * 5)
+
 	for i := 0; i <= count; i++ {
-		employeeCmd, err := proto.Marshal(&pb.EmployeeCreateCommand{
+		p := protobuf.ProtobufMarshaler{}
+
+		msg, err := p.Marshal(&pb.EmployeeCreateCommand{
 			Name:   gofakeit.Name(),
 			Labels: []string{"language:go"},
 		})
@@ -191,12 +197,9 @@ func publishMessages(ctx context.Context, publisher message.Publisher, count int
 			panic(err)
 		}
 
-		err = publisher.Publish(server.CreateEmployeeTopic, message.NewMessage(watermill.NewUUID(), employeeCmd))
+		err = publisher.Publish(server.CreateEmployeeTopic, msg)
 		if err != nil {
 			panic(err)
 		}
-
-		time.Sleep(3 * time.Second)
 	}
-
 }

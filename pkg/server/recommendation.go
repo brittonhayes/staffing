@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 
@@ -29,31 +28,29 @@ func (h *recommendationPubsubHandler) addHandlers(router *message.Router, publis
 
 func (h *recommendationPubsubHandler) createUser(msg *message.Message) error {
 
-	var employee *staffing.Employee
+	defer msg.Ack()
 
-	// WARN: This is likely where the panic
-	// "invalid memory address or nil pointer dereference" is occurring
+	h.logger.Debug("received message", watermill.LogFields{
+		"msg": msg.UUID,
+	})
+
+	var employee staffing.Employee
 	if err := json.Unmarshal(msg.Payload, &employee); err != nil {
 		log.Printf("error decoding response: %v", err)
 		if e, ok := err.(*json.SyntaxError); ok {
 			log.Printf("syntax error at byte offset %d", e.Offset)
 		}
 
-		// FIX: Recommendation from Milosz to ack bad message until good comes through
-		// for debug
-		// defer msg.Ack()
-
 		return errors.Wrap(err, "failed to unmarshal json from staffing.Employee")
 	}
-
-	log.Printf("successfully unmarshalled msg: %v", employee)
-	user := &pb.RecommendationCreateUserCommand{
+	user := pb.RecommendationCreateUserCommand{
 		UserId: string(employee.ID),
 	}
 
-	err := h.service.CreateUser(context.Background(), user)
+	err := h.service.CreateUser(msg.Context(), &user)
 	if err != nil {
 		return errors.Wrap(err, "failed to create user")
 	}
+
 	return nil
 }

@@ -4,21 +4,14 @@ import (
 	"context"
 	"errors"
 
-	"github.com/uptrace/bun"
+	"github.com/zhenghaoz/gorse/client"
 )
 
 var ErrRecommendationNotFound = errors.New("recommendation not found")
 
 type RecommendationRepository interface {
-	CreateUser(ctx context.Context, name string) error
+	CreateUser(ctx context.Context, user *User) error
 	Close() error
 }
 
-type RecommendationID string
-
-type Recommendation struct {
-	bun.BaseModel `bun:"table:recommendations"`
-
-	ID   RecommendationID `json:"id" bun:",pk"`
-	Name string
-}
+type User client.User

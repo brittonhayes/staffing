@@ -14,6 +14,10 @@ import (
 	"github.com/brittonhayes/staffing/pkg/recommend"
 )
 
+const (
+	DeadletterQueueTopic = "topic.deadletter_queue"
+)
+
 type pubsubServer struct {
 	Project        project.Service
 	Department     department.Service
@@ -39,8 +43,13 @@ func NewPubSubServer(projectService project.Service, departmentService departmen
 		panic(err)
 	}
 
+	poisonQueue, err := middleware.PoisonQueue(publisher, DeadletterQueueTopic)
+	if err != nil {
+		panic(err)
+	}
+
 	router.AddMiddleware(
-		middleware.NewThrottle(1, time.Second*3).Middleware,
+		poisonQueue,
 		middleware.Retry{
 			MaxRetries:      3,
 			InitialInterval: time.Millisecond * 100,
