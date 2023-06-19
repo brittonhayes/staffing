@@ -23,6 +23,7 @@ import (
 type httpServer struct {
 	Project    project.Service
 	Department department.Service
+	Employee   employee.Service
 
 	Logger watermill.LoggerAdapter
 
@@ -31,26 +32,27 @@ type httpServer struct {
 }
 
 // NewHTTPServer returns a new Server
-func NewHTTPServer(ps project.Service, ds department.Service, es employee.Service, address string, logger watermill.LoggerAdapter) Server {
+func NewHTTPServer(projectService project.Service, departmentService department.Service, employeeService employee.Service, address string, logger watermill.LoggerAdapter) Server {
 	s := &httpServer{
-		Project:    ps,
-		Department: ds,
+		Project:    projectService,
+		Department: departmentService,
+		Employee:   employeeService,
 		Logger:     logger,
 		address:    address,
 	}
 
-	ph := &projectHttpHandler{
-		service: ps,
+	projectHandler := &projectHttpHandler{
+		service: projectService,
 		logger:  logger,
 	}
 
-	dh := &departmentHttpHandler{
-		service: ds,
+	departmentHandler := &departmentHttpHandler{
+		service: departmentService,
 		logger:  logger,
 	}
 
-	eh := &employeeHttpHandler{
-		service: es,
+	employeeHandler := &employeeHttpHandler{
+		service: employeeService,
 		logger:  logger,
 	}
 
@@ -59,13 +61,13 @@ func NewHTTPServer(ps project.Service, ds department.Service, es employee.Servic
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Recoverer)
 
-	router.Route("/api/v1", func(r chi.Router) {
-		r.Mount("/projects", ph.router())
-		r.Mount("/departments", dh.router())
-		r.Mount("/employees", eh.router())
-	})
-
 	router.Method(http.MethodGet, "/metrics", promhttp.Handler())
+
+	router.Route("/api/v1", func(r chi.Router) {
+		r.Mount("/projects", projectHandler.router())
+		r.Mount("/departments", departmentHandler.router())
+		r.Mount("/employees", employeeHandler.router())
+	})
 
 	s.router = router
 

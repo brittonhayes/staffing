@@ -13,7 +13,6 @@ service Employee {
     rpc DeleteEmployee(EmployeeDeleteCommand) returns (google.protobuf.Empty);
     rpc AssignProject(EmployeeAssignProjectCommand) returns (google.protobuf.Empty);
     rpc UnassignProject(EmployeeUnassignProjectCommand) returns (google.protobuf.Empty);
-    rpc InsertFeedback(EmployeeInsertFeedbackCommand) returns (google.protobuf.Empty);
 }
 
 message EmployeeCreateCommand {
@@ -39,15 +38,3 @@ message EmployeeAssignProjectCommand {
 message EmployeeUnassignProjectCommand {
     string id = 1; 
 }
-
-message Feedback {
-    string feedback_type = 1;
-    string employee_id = 2;
-    string item_id = 3;
-    google.protobuf.Timestamp timestamp = 4;
-}
-
-message EmployeeInsertFeedbackCommand {
-    Feedback feedback = 1;
-}
-

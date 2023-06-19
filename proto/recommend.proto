@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+
+package staffing.recommendation.v1;
+
+option go_package = "./pb;pb";
+
+service Recommendation {
+    rpc CreateUser(RecommendationCreateUserCommand) returns (google.protobuf.Empty);
+    rpc SuggestUserProject(RecommendationSuggestUserProjectCommand) returns (google.protobuf.Empty);
+
+    rpc CreateProject(RecommendationCreateProjectCommand) returns (google.protobuf.Empty);
+
+    rpc InsertFeedback(RecommendationInsertFeedbackCommand) returns (google.protobuf.Empty);
+}
+
+message RecommendationCreateUserCommand {
+    string user_id = 1;
+    string comment = 2;
+    repeated string labels = 3;
+    repeated string subscribe = 4;
+}
+
+message RecommendationSuggestUserProjectCommand {
+    string user_id = 1;
+}
+
+message RecommendationCreateProjectCommand {
+    string name = 1;
+}
+
+message Feedback {
+    string feedback_type = 1;
+    string employee_id = 2;
+    string item_id = 3;
+    google.protobuf.Timestamp timestamp = 4;
+}
+
+message RecommendationInsertFeedbackCommand {
+    Feedback feedback = 1;
+}
+

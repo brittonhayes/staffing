@@ -11,17 +11,20 @@ import (
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 
 	"github.com/ThreeDotsLabs/watermill"
+	"github.com/ThreeDotsLabs/watermill-amqp/v2/pkg/amqp"
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/brittonhayes/staffing"
+	"github.com/brittonhayes/staffing/internal/protobuf"
 	"github.com/brittonhayes/staffing/pkg/department"
 	"github.com/brittonhayes/staffing/pkg/employee"
 	"github.com/brittonhayes/staffing/pkg/project"
+	"github.com/brittonhayes/staffing/pkg/recommend"
 	"github.com/brittonhayes/staffing/pkg/server"
 	"github.com/brittonhayes/staffing/pkg/sqlite"
+
+	"github.com/brittonhayes/staffing/pkg/gorse"
 	"github.com/brittonhayes/staffing/proto/pb"
-	"google.golang.org/protobuf/proto"
 )
 
 func main() {
@@ -30,16 +33,19 @@ func main() {
 		debug       = flag.Bool("debug", false, "enable debug logging (default false)")
 		trace       = flag.Bool("trace", false, "enable tracing (default false)")
 		httpAddress = flag.String("address", ":8080", "HTTP address port (default :8080)")
+		amqpURI     = flag.String("amqp", "amqp://guest:guest@localhost:5672/", "RabbitMQ PubSub URI (default amqp://guest:guest@rabbitmq:5672/)")
 
 		ctx = context.Background()
 	)
+
 	flag.Parse()
 	logger := watermill.NewStdLogger(*debug, *trace)
 
 	var (
-		projects    staffing.ProjectRepository
-		departments staffing.DepartmentRepository
-		employees   staffing.EmployeeRepository
+		projects        staffing.ProjectRepository
+		departments     staffing.DepartmentRepository
+		employees       staffing.EmployeeRepository
+		recommendations staffing.RecommendationRepository
 	)
 
 	switch *storage {
@@ -53,6 +59,10 @@ func main() {
 
 		employees = sqlite.NewEmployeeRepository("file::memory:?cache=shared", true)
 		defer employees.Close()
+
+		recommendations = gorse.NewRecommendationRepository("http://127.0.0.1:8088", "")
+		defer recommendations.Close()
+
 	case "sqlite":
 		logger.Debug("Using sqlite storage", nil)
 		projects = sqlite.NewProjectRepository("file:projects.db", false)
@@ -63,6 +73,9 @@ func main() {
 
 		employees = sqlite.NewEmployeeRepository("file:employees.db", false)
 		defer employees.Close()
+
+		recommendations = gorse.NewRecommendationRepository("http://127.0.0.1:8088", "")
+		defer recommendations.Close()
 	}
 
 	fieldKeys := []string{"method"}
@@ -118,11 +131,38 @@ func main() {
 		employeeSvc,
 	)
 
-	subscriber := gochannel.NewGoChannel(gochannel.Config{}, logger)
-	publisher := gochannel.NewGoChannel(gochannel.Config{}, logger)
+	recommendationSvc := recommend.NewService(recommendations)
+	recommendationSvc = recommend.NewLoggingService(logger.With(watermill.LogFields{"service": "recommendation"}), recommendationSvc)
+	recommendationSvc = recommend.NewInstrumentingService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "recommendation_service",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "recommendation_service",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys),
+		recommendationSvc,
+	)
+
+	// pubsub := gochannel.NewGoChannel(gochannel.Config{}, logger)
+	pubsub := amqp.NewDurablePubSubConfig(*amqpURI, amqp.GenerateQueueNameTopicName)
+
+	publisher, err := amqp.NewPublisher(pubsub, logger)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	subscriber, err := amqp.NewSubscriber(pubsub, logger)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	httpServer := server.NewHTTPServer(projectSvc, departmentSvc, employeeSvc, *httpAddress, logger)
-	pubsubServer := server.NewPubSubServer(projectSvc, departmentSvc, employeeSvc, subscriber, publisher, logger)
+	pubsubServer := server.NewPubSubServer(projectSvc, departmentSvc, employeeSvc, recommendationSvc, publisher, subscriber, logger)
 
 	// Run servers in multiple goroutines
 	wg := new(sync.WaitGroup)
@@ -137,35 +177,29 @@ func main() {
 		wg.Done()
 	}()
 
-	// go publishMessages(ctx, subscriber)
+	go publishMessages(ctx, publisher, 3)
 	wg.Wait()
 }
 
 // publish messages simulates a client publishing messages to the server
-func publishMessages(ctx context.Context, publisher message.Publisher) {
+func publishMessages(ctx context.Context, publisher message.Publisher, count int) {
 
-	for {
-		projectCmd, err := proto.Marshal(&pb.ProjectCreateCommand{
-			Name: gofakeit.Name(),
+	time.Sleep(time.Second * 5)
+
+	for i := 0; i <= count; i++ {
+		p := protobuf.ProtobufMarshaler{}
+
+		msg, err := p.Marshal(&pb.EmployeeCreateCommand{
+			Name:   gofakeit.Name(),
+			Labels: []string{"language:go"},
 		})
 		if err != nil {
 			panic(err)
 		}
 
-		departmentCmd, err := proto.Marshal(&pb.DepartmentCreateCommand{
-			Name: gofakeit.Verb(),
-		})
+		err = publisher.Publish(server.CreateEmployeeTopic, msg)
 		if err != nil {
 			panic(err)
 		}
-		if err := publisher.Publish(server.CreateProjectSubscribeTopic, message.NewMessage(watermill.NewUUID(), projectCmd)); err != nil {
-			panic(err)
-		}
-
-		if err := publisher.Publish(server.CreateDepartmentSubscribeTopic, message.NewMessage(watermill.NewUUID(), departmentCmd)); err != nil {
-			panic(err)
-		}
-
-		time.Sleep(5 * time.Second)
 	}
 }

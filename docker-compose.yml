@@ -1,45 +1,75 @@
 version: '3.9'
 services:
-  staffd:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    ports:
-      - 8080:8080
-    # links:
-    #   - kafka
-    # depends_on:
-    #   - kafka
+  # staffd:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: "staffing-staffd"
+  #   restart: unless-stopped
+  #   ports:
+  #     - 8080:8080
 
   prometheus:
     image: prom/prometheus:latest
+    container_name: "staffing-prometheus"
+    restart: unless-stopped
     ports:
       - 9000:9090
     volumes:
       - ./prometheus:/etc/prometheus
       - prometheus-data:/prometheus
     command: --web.enable-lifecycle --config.file=/etc/prometheus/prometheus.yml
-  # zookeeper:
-  #   image: confluentinc/cp-zookeeper:7.3.1
-  #   restart: unless-stopped
-  #   logging:
-  #     driver: none
-  #   environment:
-  #     ZOOKEEPER_CLIENT_PORT: 2181
 
-  # kafka:
-  #   image: confluentinc/cp-kafka:7.3.1
-  #   restart: unless-stopped
-  #   depends_on:
-  #     - zookeeper
-  #   logging:
-  #     driver: none
-  #   environment:
-  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-  #     KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+  redis:
+    image: redis
+    container_name: "staffing-redis"
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+
+  rabbitmq:
+    image: rabbitmq:3.7
+    restart: unless-stopped
+    ports:
+      - 5672:5672
+
+  postgres:
+   image: postgres:10.0
+   container_name: "staffing-postgres"
+   restart: unless-stopped
+   ports:
+     - 5432:5432
+   environment:
+    POSTGRES_DB: gorse
+    POSTGRES_USER: gorse
+    POSTGRES_PASSWORD: gorse_pass
+   volumes:
+     - postgres-data:/var/lib/postgresql/data
+
+  gorse:
+    image: zhenghaoz/gorse-in-one
+    container_name: "staffing-gorse"
+    restart: unless-stopped
+    ports:
+      - 8086:8086   # gRPC port
+      - 8088:8088   # HTTP port
+    environment:
+      # Use Redis as cache storage backend.
+      GORSE_CACHE_STORE: redis://redis:6379
+      # Use MySQL as data storage backend.
+      GORSE_DATA_STORE: postgres://gorse:gorse_pass@postgres/gorse?sslmode=disable 
+    command: >
+      -c /etc/gorse/config.toml 
+      --log-path /var/log/gorse/master.log 
+      --cache-path /var/lib/gorse/master_cache.data
+    volumes:
+      # Mount the configuration file.
+      - ./config.toml:/etc/gorse/config.toml
+    depends_on:
+      - redis
+      - postgres 
+
 
 volumes:
   prometheus-data:
+  postgres-data:
