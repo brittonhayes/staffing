@@ -147,15 +147,14 @@ func main() {
 	)
 
 	// pubsub := gochannel.NewGoChannel(gochannel.Config{}, logger)
-	amqpPubConfig := amqp.NewDurablePubSubConfig(*amqpURI, nil)
-	amqpSubConfig := amqp.NewDurableQueueConfig(*amqpURI)
+	pubsub := amqp.NewDurablePubSubConfig(*amqpURI, amqp.GenerateQueueNameTopicName)
 
-	publisher, err := amqp.NewPublisher(amqpPubConfig, logger)
+	publisher, err := amqp.NewPublisher(pubsub, logger)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	subscriber, err := amqp.NewSubscriber(amqpSubConfig, logger)
+	subscriber, err := amqp.NewSubscriber(pubsub, logger)
 	if err != nil {
 		log.Fatal(err)
 	}

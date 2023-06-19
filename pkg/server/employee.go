@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -105,10 +104,9 @@ func (h *employeePubsubHandler) addHandlers(router *message.Router, publisher me
 func (h *employeePubsubHandler) createEmployee(msg *message.Message) ([]*message.Message, error) {
 
 	var command pb.EmployeeCreateCommand
-	proto := protobuf.ProtobufMarshaler{}
+	p := protobuf.ProtobufMarshaler{}
 
-	err := proto.Unmarshal(msg, &command)
-	if err != nil {
+	if err := p.Unmarshal(msg, &command); err != nil {
 		return nil, err
 	}
 
@@ -121,10 +119,6 @@ func (h *employeePubsubHandler) createEmployee(msg *message.Message) ([]*message
 	if err != nil {
 		return nil, err
 	}
-
-	log.Printf("employee response before publish: %v", resp)
-	log.Printf("employee response type before publish: %T", resp)
-	log.Printf("payload before publish: %v", payload)
 
 	return []*message.Message{
 		message.NewMessage(watermill.NewUUID(), payload),

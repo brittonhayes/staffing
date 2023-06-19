@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/brittonhayes/staffing"
 	"github.com/brittonhayes/staffing/pkg/recommend"
+	"github.com/brittonhayes/staffing/proto/pb"
 	"github.com/pkg/errors"
 )
 
@@ -27,30 +29,31 @@ func (h *recommendationPubsubHandler) addHandlers(router *message.Router, publis
 
 func (h *recommendationPubsubHandler) createUser(msg *message.Message) error {
 
-	var employee staffing.Employee
+	var employee *staffing.Employee
 
 	// WARN: This is likely where the panic
 	// "invalid memory address or nil pointer dereference" is occurring
-
-	err := json.Unmarshal(msg.Payload, &employee)
-	if err != nil {
+	if err := json.Unmarshal(msg.Payload, &employee); err != nil {
 		log.Printf("error decoding response: %v", err)
 		if e, ok := err.(*json.SyntaxError); ok {
 			log.Printf("syntax error at byte offset %d", e.Offset)
 		}
-		log.Printf("response: %v", msg.Payload)
+
+		// FIX: Recommendation from Milosz to ack bad message until good comes through
+		// for debug
+		// defer msg.Ack()
+
 		return errors.Wrap(err, "failed to unmarshal json from staffing.Employee")
 	}
 
-	h.logger.Info("received event", watermill.LogFields{
-		"employee_id":   employee.ID,
-		"employee_name": employee.Name,
-	})
+	log.Printf("successfully unmarshalled msg: %v", employee)
+	user := &pb.RecommendationCreateUserCommand{
+		UserId: string(employee.ID),
+	}
 
-	// err = h.service.CreateUser(context.Background(), cmd)
-	// if err != nil {
-	// 	return errors.Wrap(err, "failed to create user")
-	// }
-	//
+	err := h.service.CreateUser(context.Background(), user)
+	if err != nil {
+		return errors.Wrap(err, "failed to create user")
+	}
 	return nil
 }
